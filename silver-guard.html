@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>银发守护 - DeepReal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#0071E3',
+            secondary: '#0F172A',
+            light: '#F5F5F7',
+            blue: '#0071E3'
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background-color: #ffffff;
+    }
+
+    .main-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(135deg, #0071E3 0%, #0056b3 50%, #00479e 100%);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 1000;
+      box-shadow: 4px 0 20px rgba(0, 113, 227, 0.3);
+      overflow: visible;
+    }
+
+    .sidebar::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+      animation: pulse 8s ease-in-out infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        transform: scale(1);
+        opacity: 0.3;
+      }
+
+      50% {
+        transform: scale(1.1);
+        opacity: 0.5;
+      }
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      color: rgba(255, 255, 255, 0.8);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 12px;
+      margin-bottom: 8px;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .nav-item.active {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      font-weight: 600;
+    }
+
+    .nav-icon {
+      font-size: 24px;
+      margin-right: 12px;
+    }
+
+    .nav-text {
+      font-size: 18px;
+    }
+
+    .content-area {
+      flex: 1;
+      margin-left: 280px;
+      padding: 32px;
+      background: #ffffff;
+      display: flex;
+      gap: 24px;
+    }
+
+    .main-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .hot-news-sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      border-radius: 16px;
+      padding: 24px;
+      height: fit-content;
+      position: sticky;
+      top: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      border: 1px solid #e2e8f0;
+    }
+
+    .hot-news-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 2px solid #0071E3;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .hot-news-item {
+      padding: 14px 0;
+      border-bottom: 1px solid #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border-radius: 8px;
+    }
+
+    .hot-news-item:hover {
+      background: white;
+      color: #0071E3;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .hot-news-item:last-child {
+      border-bottom: none;
+    }
+
+    .hot-news-item-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #0F172A;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .hot-news-item-date {
+      font-size: 12px;
+      color: #64748B;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        position: relative;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+
+      .content-area {
+        margin-left: 0;
+      }
+    }
+
+    .news-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      margin-bottom: 24px;
+      transition: all 0.3s ease;
+    }
+
+    .news-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .news-image {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      transition: all 0.3s ease;
+    }
+
+    .news-card:hover .news-image {
+      transform: scale(1.02);
+    }
+
+    .news-content {
+      padding: 24px;
+    }
+
+    .news-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0F172A;
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .news-description {
+      font-size: 15px;
+      color: #64748B;
+      line-height: 1.8;
+    }
+
+    .knowledge-card {
+      background: linear-gradient(135deg, #f0f9ff 0%, #e0f2ff 100%);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .knowledge-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0071E3;
+      margin-bottom: 16px;
+    }
+
+    .knowledge-item {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .knowledge-item-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #0F172A;
+      margin-bottom: 8px;
+    }
+
+    .knowledge-item-content {
+      font-size: 14px;
+      color: #64748B;
+      line-height: 1.7;
+    }
+
+    .report-card {
+      background: linear-gradient(135deg, #fff7ed 0%, #ffeaa7 100%);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+
+    .report-info {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .report-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+      padding: 12px;
+      background: #f8fafc;
+      border-radius: 6px;
+    }
+
+    .report-icon {
+      font-size: 28px;
+      margin-right: 12px;
+    }
+
+    .report-text {
+      font-size: 14px;
+      color: #0F172A;
+    }
+
+    .location-btn {
+      background: #0071E3;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 16px;
+    }
+
+    .location-btn:hover {
+      background: #0056b3;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+    }
+
+    .ai-card {
+      background: linear-gradient(135deg, #a78bfa 0%, #818cf8 100%);
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+    }
+
+    .ai-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .ai-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 12px;
+    }
+
+    .ai-description {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 20px;
+    }
+
+    .ai-btn {
+      background: white;
+      color: #0071E3;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 32px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .ai-btn:hover {
+      background: #f0f9ff;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+    }
+
+    .knowledge-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 32px;
+      margin-bottom: 32px;
+    }
+
+    .knowledge-card-btn {
+      border-radius: 16px;
+      padding: 48px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .knowledge-card-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .knowledge-card-btn-guide {
+      background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+    }
+
+    .knowledge-card-btn-phone {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+
+    .knowledge-card-btn-methods {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    }
+
+    .knowledge-card-btn-classroom {
+      background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+    }
+
+    .knowledge-card-icon {
+      font-size: 64px;
+      margin-bottom: 16px;
+    }
+
+    .knowledge-card-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+    <div class="main-container">
+      <!-- 左侧导航栏 -->
+      <div class="sidebar">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-white mb-2">银发守护</h1>
+        </div>
+        <p class="text-sm text-white opacity-80 mb-8 text-center">守护老年人的财产安全</p>
+
+        <nav>
+          <div class="nav-item" :class="{active: activeTab === 'news'}" @click="activeTab = 'news'">
+            <span class="nav-icon">📰</span>
+            <span class="nav-text">最新动态</span>
+          </div>
+
+          <div class="nav-item" :class="{active: activeTab === 'knowledge'}" @click="activeTab = 'knowledge'">
+            <span class="nav-icon">📚</span>
+            <span class="nav-text">反诈知识</span>
+          </div>
+
+          <div class="nav-item" :class="{active: activeTab === 'report'}" @click="activeTab = 'report'">
+            <span class="nav-icon">🚨</span>
+            <span class="nav-text">报案助手</span>
+          </div>
+
+          <div class="nav-item" :class="{active: activeTab === 'ai'}" @click="goToAIPage">
+            <span class="nav-icon">🤖</span>
+            <span class="nav-text">AI内容鉴定</span>
+          </div>
+        </nav>
+      </div>
+
+      <!-- 右侧内容区域 -->
+      <div class="content-area">
+        <!-- 最新动态 -->
+        <div v-if="activeTab === 'news'" class="main-content">
+          <h2 class="text-2xl font-bold text-secondary mb-2">最新动态</h2>
+          <div class="w-full h-2 bg-blue-600 mb-6"></div>
+          <!-- 搜索框 -->
+          <div class="mb-6">
+            <div class="relative">
+              <input v-model="searchKeyword" type="text" placeholder="搜索相关新闻..."
+                class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <button @click="searchNews"
+                class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                🔍 搜索
+              </button>
+            </div>
+          </div>
+          <div class="space-y-6">
+            <div v-for="(news, index) in newsList" :key="index" class="news-card">
+              <img :src="news.image" :alt="news.title" class="news-image">
+              <div class="news-content">
+                <h3 class="news-title">{{ news.title }}</h3>
+                <p class="news-description">{{ news.description }}</p>
+                <div class="flex items-center justify-between mt-4">
+                  <span class="text-sm text-gray-500">{{ news.date }}</span>
+                  <span class="text-sm text-blue-600 cursor-pointer">阅读更多 →</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 时事热点导航栏 -->
+        <div v-if="activeTab === 'news'" class="hot-news-sidebar">
+          <h3 class="hot-news-title">🔥 时事热点</h3>
+          <div v-for="(item, index) in hotNewsList" :key="index" class="hot-news-item">
+            <div class="hot-news-item-title">{{ item.title }}</div>
+            <div class="hot-news-item-date">{{ item.date }}</div>
+          </div>
+        </div>
+
+        <!-- 反诈知识 -->
+        <div v-if="activeTab === 'knowledge'" class="main-content">
+          <h2 class="text-2xl font-bold text-secondary mb-6">反诈知识</h2>
+
+          <!-- 四个功能方块 -->
+          <div v-if="!knowledgeSubTab" class="knowledge-grid">
+            <div @click="knowledgeSubTab = 'guide'" class="knowledge-card-btn knowledge-card-btn-guide">
+              <div class="knowledge-card-icon">📚</div>
+              <h3 class="knowledge-card-title">反诈指南</h3>
+            </div>
+
+            <div @click="knowledgeSubTab = 'phone'" class="knowledge-card-btn knowledge-card-btn-phone">
+              <div class="knowledge-card-icon">📞</div>
+              <h3 class="knowledge-card-title">报警电话</h3>
+            </div>
+
+            <div @click="knowledgeSubTab = 'methods'" class="knowledge-card-btn knowledge-card-btn-methods">
+              <div class="knowledge-card-icon">⚠️</div>
+              <h3 class="knowledge-card-title">诈骗手段</h3>
+            </div>
+
+            <div @click="knowledgeSubTab = 'classroom'" class="knowledge-card-btn knowledge-card-btn-classroom">
+              <div class="knowledge-card-icon">🎓</div>
+              <h3 class="knowledge-card-title">反诈课堂</h3>
+            </div>
+          </div>
+
+          <!-- 返回按钮 -->
+          <button v-if="knowledgeSubTab" @click="knowledgeSubTab = null"
+            class="mb-6 bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 transition-colors">
+            ← 返回
+          </button>
+
+          <!-- 反诈指南内容 -->
+          <div v-if="knowledgeSubTab === 'guide'" class="knowledge-card">
+            <h3 class="knowledge-title">老年人防诈骗指南</h3>
+            <div class="space-y-4">
+              <div v-for="(item, index) in knowledgeList" :key="index" class="knowledge-item">
+                <h4 class="knowledge-item-title">{{ item.title }}</h4>
+                <p class="knowledge-item-content">{{ item.content }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 报警电话内容 -->
+          <div v-if="knowledgeSubTab === 'phone'" class="knowledge-card">
+            <h3 class="knowledge-title">各领域防诈骗报警电话</h3>
+            <div class="space-y-4">
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">全国反诈中心电话</h4>
+                <p class="knowledge-item-content">96110 - 24小时全国反诈专线，提供防诈骗咨询和举报服务</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">公安报警电话</h4>
+                <p class="knowledge-item-content">110 - 紧急情况报警电话，如遇诈骗可立即拨打</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">金融诈骗举报</h4>
+                <p class="knowledge-item-content">12378 - 银保监会投诉举报电话，针对金融诈骗</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">网络诈骗举报</h4>
+                <p class="knowledge-item-content">12321 - 网络不良与垃圾信息举报受理中心</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">消费者投诉举报</h4>
+                <p class="knowledge-item-content">12315 - 消费者投诉举报热线，针对消费诈骗</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 诈骗手段内容 -->
+          <div v-if="knowledgeSubTab === 'methods'" class="knowledge-card">
+            <h3 class="knowledge-title">诈骗分子常用的诈骗手段</h3>
+            <div class="space-y-4">
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">冒充公检法诈骗</h4>
+                <p class="knowledge-item-content">骗子冒充公安、检察院、法院等工作人员，以涉嫌犯罪为由，要求转账到"安全账户"进行核查。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">冒充客服诈骗</h4>
+                <p class="knowledge-item-content">冒充电商平台、银行、快递等客服，以退款、理赔、账户异常等理由，诱导转账或提供验证码。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">虚假投资诈骗</h4>
+                <p class="knowledge-item-content">以高回报、零风险为诱饵，推荐虚假投资平台，前期给予小额返利，后期卷款跑路。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">保健品诈骗</h4>
+                <p class="knowledge-item-content">以免费体检、领取补贴等名义，推销虚假保健品，夸大功效，骗取老年人钱财。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">养老诈骗</h4>
+                <p class="knowledge-item-content">以养老服务、养老投资、养老公寓等为名，承诺高额回报，实则非法集资。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">中奖诈骗</h4>
+                <p class="knowledge-item-content">以中奖为名，要求先交手续费、税费等，骗取钱财。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 反诈课堂内容 -->
+          <div v-if="knowledgeSubTab === 'classroom'" class="knowledge-card">
+            <h3 class="knowledge-title">反诈课堂</h3>
+            <div class="space-y-4">
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">第一课：认识诈骗</h4>
+                <p class="knowledge-item-content">了解什么是诈骗，诈骗的基本特征，以及为什么老年人容易成为诈骗目标。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">第二课：识别诈骗</h4>
+                <p class="knowledge-item-content">学习如何识别常见的诈骗手段，掌握辨别真伪的方法和技巧。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">第三课：防范诈骗</h4>
+                <p class="knowledge-item-content">学习防范诈骗的基本原则和具体措施，提高自我保护意识。</p>
+              </div>
+              <div class="knowledge-item">
+                <h4 class="knowledge-item-title">第四课：应对诈骗</h4>
+                <p class="knowledge-item-content">遇到诈骗时的正确应对方法，包括如何报警、如何保护个人信息等。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 报案助手 -->
+        <div v-if="activeTab === 'report'" class="main-content">
+          <h2 class="text-2xl font-bold text-secondary mb-6">报案助手</h2>
+          <div class="report-card">
+            <div class="grid grid-cols-2 gap-6">
+              <!-- 左侧：定位到最近的公安局 -->
+              <div class="bg-white rounded-lg p-6 shadow-md">
+                <div class="text-center mb-4">
+                  <span class="text-4xl mb-2">📍</span>
+                  <h3 class="text-xl font-bold text-secondary">定位最近的公安局</h3>
+                </div>
+                <p class="text-gray-600 mb-6 text-center">点击下方按钮获取您的位置，我们将为您找到最近的公安局</p>
+                <button @click="locatePolice" class="location-btn w-full">
+                  📍 定位到最近的公安局
+                </button>
+              </div>
+
+              <!-- 右侧：您需要携带的东西 -->
+              <div class="bg-white rounded-lg p-6 shadow-md">
+                <div class="text-center mb-4">
+                  <span class="text-4xl mb-2">🎒</span>
+                  <h3 class="text-xl font-bold text-secondary">您需要携带的东西</h3>
+                </div>
+                <div class="space-y-4">
+                  <div class="report-item">
+                    <span class="report-icon">🆔</span>
+                    <span class="report-text">身份证</span>
+                  </div>
+                  <div class="report-item">
+                    <span class="report-icon">📱</span>
+                    <span class="report-text">手机号</span>
+                  </div>
+                  <div class="report-item">
+                    <span class="report-icon">💳</span>
+                    <span class="report-text">银行卡</span>
+                  </div>
+                  <div class="report-item">
+                    <span class="report-icon">📄</span>
+                    <span class="report-text">相关证据</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI内容鉴定 -->
+        <div v-if="activeTab === 'ai'" class="main-content">
+          <div class="ai-card">
+            <div class="ai-icon">🤖</div>
+            <h3 class="ai-title">AI真伪识别</h3>
+            <p class="ai-description">使用先进的人工智能技术，快速识别视频、图片内容的真伪性，保护您免受虚假信息侵害</p>
+            <button @click="goToAIPage" class="ai-btn">
+              进入AI鉴定页面
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp } = Vue
+
+    createApp({
+      data() {
+        return {
+          activeTab: 'news',
+          knowledgeSubTab: null,
+          searchKeyword: '',
+          originalNewsList: [
+            {
+              title: '警惕新型养老诈骗，守护您的养老钱',
+              description: '近期发现一种以"养老服务"为名的诈骗手段，骗子冒充工作人员，以免费体检、领取补贴等理由诱导老年人转账汇款。请务必提高警惕，不要轻信陌生来电。',
+              date: '2026-01-20',
+              image: '../../养老诈骗.webp'
+            },
+            {
+              title: '老年人如何识别电话诈骗？',
+              description: '电话诈骗是针对老年人最常见的诈骗方式之一。本文详细介绍了如何识别电话诈骗的常见特征，以及遇到可疑电话时的正确应对方法。',
+              date: '2026-01-18',
+              image: '../../电话诈骗.webp'
+            },
+            {
+              title: '保健品诈骗套路大揭秘',
+              description: '骗子利用老年人关注健康的心理，推销虚假保健品。本文揭露了保健品诈骗的常见套路，帮助老年人避免上当受骗。',
+              date: '2026-01-15',
+              image: '../../保健品诈骗.jpg'
+            }
+          ],
+          hotNewsList: [
+            {
+              title: '全国开展打击整治养老诈骗专项行动',
+              date: '2026-01-25'
+            },
+            {
+              title: '警惕"免费体检"背后的诈骗陷阱',
+              date: '2026-01-24'
+            },
+            {
+              title: '老年人如何防范电信网络诈骗？',
+              date: '2026-01-23'
+            },
+            {
+              title: '保健品诈骗新花样，老年人需警惕',
+              date: '2026-01-22'
+            },
+            {
+              title: '冒充公检法诈骗，老年人如何识别？',
+              date: '2026-01-21'
+            },
+            {
+              title: '投资理财诈骗盯上老年人',
+              date: '2026-01-20'
+            },
+            {
+              title: '免费旅游背后的诈骗陷阱',
+              date: '2026-01-19'
+            },
+            {
+              title: '养老诈骗案件高发，警方发布预警',
+              date: '2026-01-18'
+            },
+            {
+              title: '如何帮助老年人识别网络诈骗？',
+              date: '2026-01-17'
+            },
+            {
+              title: '诈骗分子针对老年人的新手法',
+              date: '2026-01-16'
+            }
+          ],
+          knowledgeList: [
+            {
+              title: '一、不轻信陌生来电',
+              content: '接到陌生来电时，不要轻易相信对方所说的话。特别是涉及转账汇款、提供验证码等要求时，一定要提高警惕。可以挂断电话后，通过官方渠道核实信息。'
+            },
+            {
+              title: '二、不透露个人信息',
+              content: '不要向陌生人透露自己的身份证号、银行卡号、密码、验证码等敏感信息。这些信息一旦泄露，可能会被不法分子利用进行诈骗。'
+            },
+            {
+              title: '三、不随意点击链接',
+              content: '收到短信或邮件中的链接时，不要随意点击。这些链接可能是钓鱼网站，目的是窃取您的个人信息。如有疑问，请通过官方渠道核实。'
+            },
+            {
+              title: '四、不贪图小便宜',
+              content: '天上不会掉馅饼，遇到"免费领取"、"中奖"等诱惑时，要保持清醒的头脑。这些往往是骗子设下的陷阱。'
+            },
+            {
+              title: '五、及时与家人沟通',
+              content: '遇到拿不准的事情时，及时与子女、家人沟通商量。不要因为害怕麻烦别人而独自做决定，家人的意见往往能帮助您避免上当受骗。'
+            },
+            {
+              title: '六、学习反诈知识',
+              content: '多关注反诈宣传，学习防诈骗知识。了解常见的诈骗手段和防范措施，提高自己的防范意识和能力。'
+            }
+          ]
+        }
+      },
+      computed: {
+        newsList() {
+          if (!this.searchKeyword) {
+            return this.originalNewsList
+          }
+          return this.originalNewsList.filter(news =>
+            news.title.toLowerCase().includes(this.searchKeyword.toLowerCase()) ||
+            news.description.toLowerCase().includes(this.searchKeyword.toLowerCase())
+          )
+        }
+      },
+      methods: {
+        goToAIPage() {
+          window.location.href = 'test.html'
+        },
+        searchNews() {
+          // 搜索逻辑已在computed中处理
+        },
+        locatePolice() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (position) => {
+                const lat = position.coords.latitude
+                const lng = position.coords.longitude
+                alert(`已获取您的位置信息：纬度 ${lat.toFixed(4)}，经度 ${lng.toFixed(4)}\n\n正在为您查找最近的公安局...`)
+              },
+              (error) => {
+                alert('无法获取您的位置信息，请检查浏览器权限设置。')
+              }
+            )
+          } else {
+            alert('您的浏览器不支持地理定位功能。')
+          }
+        }
+      }
+    }).mount('#app')
+  </script>
+</body>
+
+</html>
