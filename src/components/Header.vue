@@ -3,8 +3,8 @@
     <div class="navbar-container">
       <!-- 左侧：Logo 和 主导航菜单 -->
       <div class="navbar-left">
-        <!-- 网站Logo - 增强反诈骗元素 -->
-        <div class="logo">
+        <!-- 网站Logo - 使用router-link跳转到首页 -->
+        <router-link to="/" class="logo">
           <div class="logo-icon-wrapper">
             <span class="logo-icon">🛡️</span>
             <span class="logo-shield-glow"></span>
@@ -13,78 +13,63 @@
             <span class="logo-text">DeepReal</span>
             <span class="logo-tagline">反诈·守护</span>
           </div>
-        </div>
+        </router-link>
 
         <!-- 主导航菜单 -->
         <ul class="nav-menu">
           <!-- 首页 -->
           <li class="nav-item">
-            <a href="/" class="nav-link">
+            <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
               <i class="fas fa-home nav-icon"></i>
               <span>首页</span>
-            </a>
+            </router-link>
           </li>
 
-          <!-- AI真伪识别 (下拉菜单) -->
-          <li class="nav-item dropdown" @mouseenter="openDropdown('ai')" @mouseleave="closeDropdown('ai')">
-            <a href="#" class="nav-link">
+          <!-- AI真伪识别 -->
+          <li class="nav-item">
+            <router-link to="/detection" class="nav-link" :class="{ active: $route.path === '/detection' }">
               <i class="fas fa-robot nav-icon"></i>
               <span>AI真伪识别</span>
-              <i class="fas fa-chevron-down dropdown-arrow" :class="{ rotated: activeDropdown === 'ai' }"></i>
-            </a>
-            <div class="dropdown-menu" v-show="activeDropdown === 'ai'">
-              <a href="/detect/image" class="dropdown-item" @click="closeDropdown('ai')">
-                <i class="fas fa-image dropdown-item-icon"></i>
-                图片/视频检测
-              </a>
-              <a href="/detect/audio" class="dropdown-item" @click="closeDropdown('ai')">
-                <i class="fas fa-microphone dropdown-item-icon"></i>
-                语音/音频检测
-              </a>
-              <a href="/detect/text" class="dropdown-item" @click="closeDropdown('ai')">
-                <i class="fas fa-file-alt dropdown-item-icon"></i>
-                文字/链接检测
-              </a>
-            </div>
+            </router-link>
           </li>
 
           <!-- 人群守护 (下拉菜单) -->
           <li class="nav-item dropdown" @mouseenter="openDropdown('people')" @mouseleave="closeDropdown('people')">
-            <a href="#" class="nav-link">
+            <a href="#" class="nav-link" @click.prevent>
               <i class="fas fa-users nav-icon"></i>
               <span>人群守护</span>
               <i class="fas fa-chevron-down dropdown-arrow" :class="{ rotated: activeDropdown === 'people' }"></i>
             </a>
             <div class="dropdown-menu" v-show="activeDropdown === 'people'">
-              <a href="/guard/elder" class="dropdown-item" @click="closeDropdown('people')">
+              <router-link to="/guard/elder" class="dropdown-item" @click="closeDropdown('people')">
                 <i class="fas fa-user-plus dropdown-item-icon"></i>
                 银发守护
-              </a>
-              <a href="/guard/kids" class="dropdown-item" @click="closeDropdown('people')">
+              </router-link>
+              <router-link to="/guard/kids" class="dropdown-item" @click="closeDropdown('people')">
                 <i class="fas fa-child dropdown-item-icon"></i>
                 亲子课堂
-              </a>
-              <a href="/guard/work" class="dropdown-item" @click="closeDropdown('people')">
+              </router-link>
+              <router-link to="/guard/work" class="dropdown-item" @click="closeDropdown('people')">
                 <i class="fas fa-briefcase dropdown-item-icon"></i>
                 职场防骗
-              </a>
+              </router-link>
             </div>
           </li>
 
           <!-- 最新动态 -->
           <li class="nav-item">
-            <a href="/classroom" class="nav-link">
+            <router-link to="/news" class="nav-link" :class="{ active: $route.path === '/news' }">
               <i class="fas fa-newspaper nav-icon"></i>
               <span>最新动态</span>
-            </a>
+            </router-link>
           </li>
 
           <!-- 关于我们 -->
           <li class="nav-item">
-            <a href="/about" class="nav-link">
+            <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">
               <i class="fas fa-user nav-icon"></i>
               <span>关于我们</span>
-            </a>
+            </router-link>
           </li>
         </ul>
       </div>
@@ -92,21 +77,21 @@
       <!-- 右上角：紧急求助 + 登录/注册合并按钮 -->
       <div class="navbar-right">
         <!-- 醒目的紧急求助按钮（带脉冲效果） -->
-        <button class="emergency-btn">
+        <button class="emergency-btn" @click="handleEmergency">
           <i class="fas fa-exclamation-triangle btn-icon"></i>
           <span>紧急求助</span>
           <span class="emergency-pulse"></span>
         </button>
 
         <!-- 合并的登录/注册按钮 -->
-        <button class="auth-btn login-register">
+        <button class="auth-btn login-register" @click="goToAuth">
           <i class="fas fa-user-shield btn-icon"></i>
           <span>登录 / 注册</span>
         </button>
       </div>
     </div>
 
-    <!-- 反诈标语滚动条（可选，增加反诈氛围） -->
+    <!-- 反诈标语滚动条 -->
     <div class="anti-fraud-ticker">
       <div class="ticker-content">
         <i class="fas fa-shield-alt"></i> 全民反诈，你我同行 · 守护财产安全，从我做起 · 96110 反诈专线
@@ -120,7 +105,7 @@ export default {
   name: 'AppNavbar',
   data() {
     return {
-      activeDropdown: null // 当前打开的下拉菜单：'ai' 或 'people'
+      activeDropdown: null
     }
   },
   methods: {
@@ -131,12 +116,22 @@ export default {
       if (this.activeDropdown === menu) {
         this.activeDropdown = null
       }
+    },
+    handleEmergency() {
+      // 处理紧急求助逻辑
+      window.location.href = 'tel:110' // 或者弹出提示框
+      alert('紧急求助：请拨打 110 或 96110 反诈专线')
+    },
+    goToAuth() {
+      // 跳转到登录/注册页面
+      this.$router.push('/auth')
     }
   }
 }
 </script>
 
 <style scoped>
+
 /* 天蓝色为主色调 */
 .navbar {
   background: linear-gradient(to right, #ffffff, #f0f9ff);
@@ -553,5 +548,59 @@ export default {
     flex-wrap: wrap;
     justify-content: center;
   }
+}
+
+/* 保持你原有的样式不变，只需要添加active状态样式 */
+.nav-link.active {
+  background: rgba(0, 100, 178, 0.12);
+  color: #0064b2;
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  width: 80%;
+  background: #0064b2;
+}
+
+.nav-link.active .nav-icon {
+  color: #0064b2;
+}
+
+/* Logo 的 router-link 样式 */
+.logo {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  position: relative;
+}
+
+/* 下拉菜单中的 router-link 样式 */
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  color: #1a2a3a;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+}
+
+.dropdown-item.router-link-active {
+  background: rgba(0, 100, 178, 0.08);
+  color: #0064b2;
+}
+
+.dropdown-item.router-link-active::before {
+  content: '🛡️';
+  position: absolute;
+  left: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.8;
 }
 </style>

@@ -135,6 +135,15 @@
 </template>
 
 <script>
+import news1 from '../assets/images/news_photo/facetime2.jpeg'
+import news2 from '../assets/images/news_photo/演唱会1.jpg'
+import news3 from '../assets/images/news_photo/客服诈骗.jpg'
+import news4 from '../assets/images/news_photo/演唱会2.jpg'
+import news5 from '../assets/images/news_photo/facetime.png'
+import news6 from '../assets/images/news_photo/刷单.jpeg'
+import news7 from '../assets/images/news_photo/假公安.jpeg'
+import news8 from '../assets/images/news_photo/虚假教育机构.jpeg'
+import news9 from '../assets/images/news_photo/诱导投资.png'
 export default {
   name: 'FraudNewsDashboard',
   data() {
@@ -144,19 +153,19 @@ export default {
         {
           title: 'FaceTime来电需警惕！已有多人被骗',
           summary: '近期利用FaceTime冒充客服诈骗高发，切勿开启屏幕共享',
-          image: 'https://picsum.photos/id/1043/300/160',
+          image: news1,
           tag: '紧急'
         },
         {
           title: '演唱会门票诈骗新套路：假票务网站',
           summary: '骗子伪造票务网站，诱导直接转账后失联',
-          image: 'https://picsum.photos/id/96/300/160',
+          image: news2,
           tag: '新手法'
         },
         {
           title: '警惕"百万保障"到期骗局',
           summary: '冒充微信/支付宝客服，称百万保障到期需续费',
-          image: 'https://picsum.photos/id/20/300/160',
+          image: news3,
           tag: '高发'
         }
       ],
@@ -167,7 +176,7 @@ export default {
           type: 'case',
           title: '为看演唱会买"黄牛票"，大学生被骗3万元',
           summary: '在微博联系转让门票，按要求转账后被拉黑，警方已立案。',
-          imageUrl: 'https://picsum.photos/id/1043/120/80',
+          imageUrl: news4,
           publishTime: '2小时前',
           likes: 1234,
           comments: 289,
@@ -179,7 +188,7 @@ export default {
           type: 'warning',
           title: 'FaceTime来电称"利率调整"，女子被骗18万',
           summary: '骗子冒充金融平台客服，诱导开启屏幕共享盗刷银行卡。',
-          imageUrl: 'https://picsum.photos/id/24/120/80',
+          imageUrl: news5,
           publishTime: '5小时前',
           likes: 2567,
           comments: 401,
@@ -191,7 +200,7 @@ export default {
           type: 'case',
           title: '刷单返利：先给甜头后骗大额',
           summary: '先返现几十元获取信任，随后以"连单""卡单"为由骗取数万元。',
-          imageUrl: 'https://picsum.photos/id/44/120/80',
+          imageUrl: news6,
           publishTime: '昨天',
           likes: 892,
           comments: 134,
@@ -203,7 +212,7 @@ export default {
           type: 'case',
           title: '假"公安"来电称涉嫌洗钱，老人转账50万',
           summary: '骗子伪造通缉令，要求将资金转入"安全账户"审查。',
-          imageUrl: 'https://picsum.photos/id/48/120/80',
+          imageUrl: news7,
           publishTime: '昨天',
           likes: 3456,
           comments: 512,
@@ -215,7 +224,7 @@ export default {
           type: 'warning',
           title: '当心！骗子冒充孩子索要培训费',
           summary: '通过QQ冒充子女，以报名名校培训班为由要求家长转账。',
-          imageUrl: 'https://picsum.photos/id/107/120/80',
+          imageUrl: news8,
           publishTime: '3天前',
           likes: 678,
           comments: 98,
@@ -227,7 +236,7 @@ export default {
           type: 'case',
           title: '网络交友诱导投资，女子一周被骗24万',
           summary: '网友诱导下载投资APP，前期盈利后无法提现。',
-          imageUrl: 'https://picsum.photos/id/21/120/80',
+          imageUrl: news9,
           publishTime: '4天前',
           likes: 1890,
           comments: 277,
