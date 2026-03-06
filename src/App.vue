@@ -1,17 +1,14 @@
 <script setup>
 import Header from './components/Header.vue'
-import MainHome from './components/MainHome.vue'  
-import News from './components/News.vue';
 </script>
 
 <template>
   <Header></Header>
-  <MainHome></MainHome>  
-  <!-- <News></News> -->
+  <!-- 路由视图，用于显示当前路由对应的组件 -->
+  <router-view></router-view>
 </template>
 
 <style scoped>
-/* 可以添加全局样式，确保页面布局正确 */
 * {
   margin: 0;
   padding: 0;
@@ -20,6 +17,6 @@ import News from './components/News.vue';
 
 body {
   font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
-  background-color: #f5fcff; /* 与首页背景保持一致 */
+  background-color: #f5fcff;
 }
 </style>
