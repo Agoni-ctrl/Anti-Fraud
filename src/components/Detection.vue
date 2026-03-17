@@ -1,6 +1,6 @@
 <template>
   <div class="fraud-platform">
-    <!-- 左侧导航栏 -->
+    <!-- 左侧导航栏 (保持不变) -->
     <div class="sidebar">
       <div class="logo-area">
         <i class="fas fa-shield-alt"></i>
@@ -31,22 +31,18 @@
       </div>
     </div>
 
-    <!-- 右侧主内容区 -->
-    <div class="main-content">
+    <!-- 右侧主内容区 - 移除了上边距，与顶部导航栏相接 -->
+    <div class="main-content main-content-no-gap">
+      
       <!-- ==================== 检测中心 ==================== -->
       <div v-if="currentNav === 'detect'" class="content-page">
-        <div class="page-header">
-          <h2><i class="fas fa-search"></i> 检测中心</h2>
-          <div class="header-actions">
-            <span class="date-badge"><i class="far fa-calendar"></i> {{ currentDate }}</span>
-          </div>
-        </div>
-
         <div class="detect-layout">
-          <!-- 左侧上传区域 -->
+          <!-- 左侧上传/输入区域 -->
           <div class="upload-section">
             <div class="section-card">
-              <h3><i class="fas fa-cloud-upload-alt"></i> 文件上传</h3>
+              <div class="section-header-balanced">
+                <h3 class="section-title-large"><i class="fas fa-cloud-upload-alt"></i> 文件上传</h3>
+              </div>
               
               <div class="file-type-selector">
                 <label>检测对象：</label>
@@ -91,8 +87,22 @@
                 </select>
               </div>
 
-              <!-- 上传区域 -->
-              <div class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
+              <!-- 文本输入区域（当选择文本类型时显示） -->
+              <div v-if="selectedFileType === 'text'" class="text-input-section">
+                <label>请输入要检测的文本内容：</label>
+                <div class="text-input-container">
+                  <textarea 
+                    v-model="textContent" 
+                    placeholder="请输入要检测的文本内容（最多500字）..."
+                    maxlength="500"
+                    class="text-input-area"
+                  ></textarea>
+                  <span class="text-counter">{{ textContent.length }}/500</span>
+                </div>
+              </div>
+
+              <!-- 文件上传区域（非文本类型时显示） -->
+              <div v-else class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
                 <input 
                   type="file" 
                   ref="fileInput" 
@@ -104,19 +114,30 @@
                 <div class="upload-content">
                   <i class="fas fa-cloud-upload-alt"></i>
                   <p>点击或拖拽文件到此区域上传</p>
-                  <span class="upload-hint">支持文本、图片、音频、视频文件，最多10个文件</span>
+                  <span class="upload-hint">支持图片、音频、视频文件，最多10个文件</span>
                   <button class="select-file-btn" @click="$refs.fileInput.click()">
                     选择文件
                   </button>
                 </div>
               </div>
 
-              <!-- 已选文件列表 -->
-              <div v-if="uploadedFiles.length > 0" class="file-list">
+              <!-- 已选文件列表（非文本类型时显示）- 增加预览功能 -->
+              <div v-if="selectedFileType !== 'text' && uploadedFiles.length > 0" class="file-list">
                 <div v-for="(file, index) in uploadedFiles" :key="index" class="file-item">
-                  <i :class="getFileIcon(file.type)"></i>
-                  <span class="file-name">{{ file.name }}</span>
-                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <div class="file-preview">
+                    <!-- 图片预览 -->
+                    <img v-if="file.type === 'image' && file.previewUrl" :src="file.previewUrl" class="preview-image" alt="预览">
+                    <!-- 视频预览 -->
+                    <video v-else-if="file.type === 'video' && file.previewUrl" :src="file.previewUrl" class="preview-video" controls></video>
+                    <!-- 音频预览 -->
+                    <audio v-else-if="file.type === 'audio' && file.previewUrl" :src="file.previewUrl" class="preview-audio" controls></audio>
+                    <!-- 默认图标 -->
+                    <i v-else :class="getFileIcon(file.type)" class="file-icon-large"></i>
+                  </div>
+                  <div class="file-info">
+                    <span class="file-name">{{ file.name }}</span>
+                    <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  </div>
                   <button class="remove-file" @click="removeFile(index)">
                     <i class="fas fa-times"></i>
                   </button>
@@ -125,10 +146,10 @@
 
               <!-- 操作按钮 -->
               <div class="upload-actions">
-                <button class="start-detect-btn" @click="startDetection" :disabled="uploadedFiles.length === 0">
+                <button class="start-detect-btn" @click="startDetection" :disabled="!canStartDetection">
                   <i class="fas fa-play"></i> 开始检测
                 </button>
-                <button class="clear-btn" @click="clearAllFiles">
+                <button class="clear-btn" @click="clearAll">
                   <i class="fas fa-trash-alt"></i> 清空
                 </button>
               </div>
@@ -138,11 +159,14 @@
           <!-- 右侧结果区域 -->
           <div class="result-section">
             <div class="section-card result-card">
-              <div class="result-header">
-                <h3><i class="fas fa-chart-bar"></i> 检测结果</h3>
-                <button v-if="hasResult" class="export-report-btn" @click="exportReport">
-                  <i class="fas fa-file-export"></i> 导出报告
-                </button>
+              <div class="section-header-balanced">
+                <h3 class="section-title-large"><i class="fas fa-chart-bar"></i> 检测结果</h3>
+                <div class="result-header-actions">
+                  <span class="date-badge"><i class="far fa-calendar"></i> {{ currentDate }}</span>
+                  <button v-if="hasResult" class="export-report-btn" @click="exportReport">
+                    <i class="fas fa-file-export"></i> 导出报告
+                  </button>
+                </div>
               </div>
 
               <!-- 检测中动画 -->
@@ -181,33 +205,34 @@
                 </div>
                 <h4>开始您的第一次检测</h4>
                 
+                <!-- 优化后的功能特点排版 - 蓝色圆点图标，严格对齐，内容扩写 -->
                 <div class="feature-description-result">
                   <div class="feature-item">
-                    <i class="fas fa-check-circle"></i>
+                    <span class="feature-dot"></span>
                     <div class="feature-text">
                       <strong>多模态识别</strong>
-                      <span>支持文本、图像、音频、视频文件</span>
+                      <span>支持文本、图像、音频、视频文件，跨模态交叉验证</span>
                     </div>
                   </div>
                   <div class="feature-item">
-                    <i class="fas fa-check-circle"></i>
+                    <span class="feature-dot"></span>
                     <div class="feature-text">
                       <strong>深度伪造检测</strong>
-                      <span>AI换脸、语音合成识别</span>
+                      <span>AI换脸、语音合成识别，GAN生成内容检测</span>
                     </div>
                   </div>
                   <div class="feature-item">
-                    <i class="fas fa-check-circle"></i>
+                    <span class="feature-dot"></span>
                     <div class="feature-text">
-                      <strong>元数据分析</strong>
-                      <span>EXIF信息、编辑历史追溯</span>
+                      <strong>数据分析</strong>
+                      <span>生成详细检测报告，包含模型解释性文本，分析伪造痕迹</span>
                     </div>
                   </div>
                   <div class="feature-item">
-                    <i class="fas fa-check-circle"></i>
+                    <span class="feature-dot"></span>
                     <div class="feature-text">
-                      <strong>一致性校验</strong>
-                      <span>音视频同步、人脸背景匹配</span>
+                      <strong>结果导出</strong>
+                      <span>支持PDF报告导出、JSON数据导出、结果分享</span>
                     </div>
                   </div>
                 </div>
@@ -217,28 +242,28 @@
                     <span class="step-num">1</span>
                     <div class="step-content">
                       <strong>选择文件类型</strong>
-                      <span>文本、图片、音频或视频</span>
+                      <span>根据待检测内容选择对应类型，系统将采用专用模型进行分析，提高检测准确率。</span>
                     </div>
                   </div>
                   <div class="step">
                     <span class="step-num">2</span>
                     <div class="step-content">
-                      <strong>上传文件</strong>
-                      <span>支持拖拽或点击上传</span>
+                      <strong>上传文件或输入文本</strong>
+                      <span>支持拖拽或点击上传文件，文本类型可直接输入内容。</span>
                     </div>
                   </div>
                   <div class="step">
                     <span class="step-num">3</span>
                     <div class="step-content">
                       <strong>开始检测</strong>
-                      <span>系统进行多模态分析</span>
+                      <span>系统进行多模态分析，包括元数据提取、特征比对、深度伪造检测等环节。</span>
                     </div>
                   </div>
                   <div class="step">
                     <span class="step-num">4</span>
                     <div class="step-content">
                       <strong>查看结果</strong>
-                      <span>获取详细真伪报告</span>
+                      <span>获取详细真伪报告，包含多维度的可信度评分和具体的伪造痕迹分析。</span>
                     </div>
                   </div>
                 </div>
@@ -315,6 +340,18 @@
                       </div>
                     </div>
                   </div>
+
+                  <div v-if="currentResult.fileType === 'text'" class="text-analysis">
+                    <div class="analysis-subtitle">
+                      <i class="fas fa-font"></i> 文本分析细节
+                    </div>
+                    <div class="text-features">
+                      <div class="feature" v-for="feature in currentResult.textFeatures" :key="feature.name">
+                        <i :class="feature.icon"></i>
+                        <span>{{ feature.name }}: {{ feature.value }}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div v-if="activeAnalysisTab === 'details'" class="tab-content">
@@ -340,10 +377,10 @@
                       </div>
                       <div class="feature-desc">{{ feature.description }}</div>
                       <div class="feature-confidence">
-                        置信度: {{ feature.confidence }}%
-                        <div class="mini-progress">
-                          <div class="mini-progress-fill" :style="{ width: feature.confidence + '%' }"></div>
-                        </div>
+                        准确度: 
+                        <span class="accuracy-tag" :class="getAccuracyLevelClass(feature.confidence)">
+                          {{ getAccuracyLevel(feature.confidence) }}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -356,20 +393,18 @@
 
       <!-- ==================== 检测记录 ==================== -->
       <div v-if="currentNav === 'records'" class="content-page">
-        <div class="page-header">
-          <h2><i class="fas fa-history"></i> 我的检测记录</h2>
-          <div class="header-actions">
-            <button class="export-btn" @click="exportRecords">
+        <div class="filter-section">
+          <div class="filter-header">
+            <h3 class="filter-title"><i class="fas fa-filter"></i> 筛选条件</h3>
+            <button class="export-records-btn" @click="exportRecords">
               <i class="fas fa-download"></i> 导出记录
             </button>
           </div>
-        </div>
-
-        <div class="filter-section">
+          
           <div class="filter-grid">
             <div class="filter-item">
               <label>时间范围</label>
-              <select v-model="recordFilters.timeRange">
+              <select v-model="tempFilters.timeRange">
                 <option>今日</option>
                 <option>近7天</option>
                 <option>本月</option>
@@ -378,17 +413,17 @@
             </div>
             <div class="filter-item">
               <label>文件类型</label>
-              <select v-model="recordFilters.fileType">
+              <select v-model="tempFilters.fileType">
                 <option>全部</option>
                 <option>文本</option>
                 <option>图片</option>
                 <option>音频</option>
-                <option>音视频</option>
+                <option>视频</option>
               </select>
             </div>
             <div class="filter-item">
               <label>检测结果</label>
-              <select v-model="recordFilters.result">
+              <select v-model="tempFilters.result">
                 <option>全部</option>
                 <option>可信</option>
                 <option>疑似伪造</option>
@@ -397,7 +432,7 @@
             </div>
             <div class="filter-item">
               <label>图片子类</label>
-              <select v-model="recordFilters.imageSubtype">
+              <select v-model="tempFilters.imageSubtype">
                 <option>全部</option>
                 <option>人脸</option>
                 <option>聊天记录</option>
@@ -407,14 +442,14 @@
               <label>搜索</label>
               <div class="search-box">
                 <i class="fas fa-search"></i>
-                <input type="text" placeholder="文件名" v-model="recordFilters.search">
+                <input type="text" placeholder="输入文件名搜索" v-model="tempFilters.search">
               </div>
             </div>
             <div class="filter-item buttons-item">
-              <button class="search-btn" @click="searchRecords">
+              <button class="search-btn" @click="applyFilters">
                 <i class="fas fa-search"></i> 查询
               </button>
-              <button class="reset-btn" @click="resetRecordFilters">
+              <button class="reset-btn" @click="resetFilters">
                 <i class="fas fa-undo"></i> 重置
               </button>
             </div>
@@ -511,12 +546,8 @@
         </div>
       </div>
 
-      <!-- ==================== 数据统计 (使用ECharts) ==================== -->
+      <!-- ==================== 数据统计 ==================== -->
       <div v-if="currentNav === 'statistics'" class="content-page">
-        <div class="page-header">
-          <h2><i class="fas fa-chart-pie"></i> 我的数据统计</h2>
-        </div>
-
         <div class="stats-overview">
           <div class="stat-card">
             <div class="stat-icon blue">
@@ -597,7 +628,7 @@
               <h4><i class="fas fa-chart-bar"></i> 各类文件检测结果</h4>
             </div>
             <div class="chart-wrapper">
-              <div ref="barChart" class="chart-container" style="width:100%; height:280px;"></div>
+              <div ref="barChart" class="chart-container" style="width:100%; height:300px;"></div>
               <div v-if="chartError.bar" class="chart-error">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>图表加载失败，请刷新重试</span>
@@ -644,24 +675,36 @@
             <h4><i class="fas fa-chart-simple"></i> 常用检测类型</h4>
             <div class="type-ranking">
               <div class="rank-item">
-                <span class="rank-num">1</span>
+                <span class="rank-num rank-1">1</span>
                 <span class="rank-type">图片</span>
                 <span class="rank-count">486次</span>
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width: 86%"></div>
+                </div>
               </div>
               <div class="rank-item">
-                <span class="rank-num">2</span>
+                <span class="rank-num rank-2">2</span>
                 <span class="rank-type">文本</span>
                 <span class="rank-count">352次</span>
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width: 62%"></div>
+                </div>
               </div>
               <div class="rank-item">
-                <span class="rank-num">3</span>
+                <span class="rank-num rank-3">3</span>
                 <span class="rank-type">音频</span>
                 <span class="rank-count">247次</span>
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width: 44%"></div>
+                </div>
               </div>
               <div class="rank-item">
-                <span class="rank-num">4</span>
+                <span class="rank-num rank-4">4</span>
                 <span class="rank-type">视频</span>
                 <span class="rank-count">162次</span>
+                <div class="rank-bar">
+                  <div class="rank-bar-fill" style="width: 29%"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -670,14 +713,12 @@
 
       <!-- ==================== 意见反馈 ==================== -->
       <div v-if="currentNav === 'feedback'" class="content-page">
-        <div class="page-header">
-          <h2><i class="fas fa-comment-dots"></i> 意见反馈</h2>
-        </div>
-
         <div class="feedback-layout">
           <div class="feedback-form-section">
             <div class="form-card">
-              <h3><i class="fas fa-edit"></i> 提交反馈</h3>
+              <div class="section-header-balanced">
+                <h3 class="section-title-large"><i class="fas fa-edit"></i> 提交反馈</h3>
+              </div>
               
               <div class="form-group">
                 <label>反馈类型 <span class="required">*</span></label>
@@ -715,26 +756,28 @@
                 </select>
               </div>
 
-              <div class="form-group">
+              <div class="form-group with-counter">
                 <label>反馈标题 <span class="required">*</span></label>
                 <input 
                   type="text" 
                   v-model="feedback.title" 
                   placeholder="例：人脸检测结果不准确"
                   maxlength="100"
+                  class="full-width-input"
                 >
-                <span class="char-count">{{ feedback.title.length }}/100</span>
+                <span class="char-counter">{{ feedback.title.length }}/100</span>
               </div>
 
-              <div class="form-group">
+              <div class="form-group with-counter">
                 <label>详细描述 <span class="required">*</span></label>
                 <textarea 
                   v-model="feedback.description" 
                   rows="5"
                   placeholder="请详细描述您遇到的问题或建议..."
                   maxlength="500"
+                  class="full-width-textarea"
                 ></textarea>
-                <span class="char-count">{{ feedback.description.length }}/500</span>
+                <span class="char-counter">{{ feedback.description.length }}/500</span>
               </div>
 
               <div class="form-group">
@@ -764,6 +807,7 @@
                   type="text" 
                   v-model="feedback.contact" 
                   placeholder="邮箱或手机号，便于我们回复您"
+                  class="full-width-input"
                 >
               </div>
 
@@ -780,7 +824,9 @@
 
           <div class="feedback-history-section">
             <div class="history-card">
-              <h3><i class="fas fa-history"></i> 我的反馈记录</h3>
+              <div class="section-header-balanced">
+                <h3 class="section-title-large"><i class="fas fa-history"></i> 我的反馈记录</h3>
+              </div>
               
               <div class="history-list">
                 <div v-for="item in userFeedbackHistory" :key="item.id" class="history-item">
@@ -824,43 +870,43 @@
 
       <!-- ==================== 使用指南 ==================== -->
       <div v-if="currentNav === 'guide'" class="content-page">
-        <div class="page-header">
-          <h2><i class="fas fa-book-open"></i> 使用指南</h2>
-        </div>
-
         <div class="guide-content">
           <div class="guide-section">
-            <h3><i class="fas fa-rocket"></i> 快速入门</h3>
+            <div class="section-header-balanced">
+              <h3 class="section-title-large"><i class="fas fa-rocket"></i> 快速入门</h3>
+            </div>
             <div class="steps-grid">
               <div class="step-card">
                 <div class="step-number">1</div>
                 <i class="fas fa-file-upload"></i>
                 <h4>上传文件</h4>
-                <p>支持拖拽或点击上传，单次最多10个文件</p>
+                <p>支持拖拽或点击上传，单次最多10个文件，支持多种格式</p>
               </div>
               <div class="step-card">
                 <div class="step-number">2</div>
                 <i class="fas fa-sliders-h"></i>
                 <h4>选择类型</h4>
-                <p>指定文件类型，提高检测准确率</p>
+                <p>指定文件类型，提高检测准确率，可选用专精检测模型</p>
               </div>
               <div class="step-card">
                 <div class="step-number">3</div>
                 <i class="fas fa-play"></i>
                 <h4>开始检测</h4>
-                <p>点击检测按钮，系统自动分析</p>
+                <p>点击检测按钮，系统自动进行多模态深度分析</p>
               </div>
               <div class="step-card">
                 <div class="step-number">4</div>
                 <i class="fas fa-chart-bar"></i>
                 <h4>查看结果</h4>
-                <p>获取详细的真伪分析报告</p>
+                <p>获取详细的真伪分析报告，包含多维度的可信度评分</p>
               </div>
             </div>
           </div>
 
           <div class="guide-section">
-            <h3><i class="fas fa-file-alt"></i> 支持的文件类型</h3>
+            <div class="section-header-balanced">
+              <h3 class="section-title-large"><i class="fas fa-file-alt"></i> 支持的文件类型</h3>
+            </div>
             <div class="file-types-grid">
               <div class="file-type-card">
                 <i class="fas fa-file-alt"></i>
@@ -868,6 +914,7 @@
                 <ul>
                   <li>TXT、DOC、DOCX、PDF</li>
                   <li>最大100MB</li>
+                  <li>支持语义分析</li>
                 </ul>
               </div>
               <div class="file-type-card">
@@ -901,7 +948,9 @@
           </div>
 
           <div class="guide-section">
-            <h3><i class="fas fa-microscope"></i> 多模态识别技术</h3>
+            <div class="section-header-balanced">
+              <h3 class="section-title-large"><i class="fas fa-microscope"></i> 多模态识别技术</h3>
+            </div>
             <div class="features-grid">
               <div class="feature-card">
                 <i class="fas fa-brain"></i>
@@ -937,7 +986,9 @@
           </div>
 
           <div class="guide-section">
-            <h3><i class="fas fa-question-circle"></i> 常见问题</h3>
+            <div class="section-header-balanced">
+              <h3 class="section-title-large"><i class="fas fa-question-circle"></i> 常见问题</h3>
+            </div>
             <div class="faq-list">
               <div class="faq-item" v-for="(faq, index) in faqs" :key="index">
                 <div class="faq-question" @click="toggleFaq(index)">
@@ -955,8 +1006,10 @@
     </div>
   </div>
 </template>
+
 <script>
 import * as echarts from 'echarts';
+import html2pdf from 'html2pdf.js';
 
 export default {
   name: 'FraudDetectionPlatform',
@@ -978,12 +1031,13 @@ export default {
         { value: 'text', name: '文本', icon: 'fas fa-file-alt' },
         { value: 'image', name: '图片', icon: 'fas fa-file-image' },
         { value: 'audio', name: '音频', icon: 'fas fa-file-audio' },
-        { value: 'video', name: '音视频', icon: 'fas fa-file-video' }
+        { value: 'video', name: '视频', icon: 'fas fa-file-video' }
       ],
       selectedFileType: 'image',
       imageSubtype: 'face',
       selectedModel: 'standard',
       uploadedFiles: [],
+      textContent: '',
       
       // 检测状态
       isDetecting: false,
@@ -995,7 +1049,7 @@ export default {
       currentResult: null,
       activeAnalysisTab: 'overview',
       
-      // 检测记录
+      // 检测记录筛选
       recordFilters: {
         timeRange: '近7天',
         fileType: '全部',
@@ -1003,18 +1057,26 @@ export default {
         imageSubtype: '全部',
         search: ''
       },
+      tempFilters: {
+        timeRange: '近7天',
+        fileType: '全部',
+        result: '全部',
+        imageSubtype: '全部',
+        search: ''
+      },
+      
       records: [
         { id: 1, name: '陌生来电录音.mp3', type: '音频', subtype: '', time: '2026-03-02 14:23', score: 23, resultClass: 'suspicious', resultText: '疑似伪造' },
         { id: 2, name: '身份证照片.jpg', type: '图片', subtype: '人脸', time: '2026-03-02 13:47', score: 97, resultClass: 'trust', resultText: '可信' },
         { id: 3, name: '微信聊天截图.png', type: '图片', subtype: '聊天记录', time: '2026-03-02 12:08', score: 45, resultClass: 'review', resultText: '待复核' },
         { id: 4, name: '诈骗短信.txt', type: '文本', subtype: '', time: '2026-03-02 11:32', score: 12, resultClass: 'suspicious', resultText: '疑似伪造' },
-        { id: 5, name: '会议录像.mp4', type: '音视频', subtype: '', time: '2026-03-02 09:55', score: 88, resultClass: 'trust', resultText: '可信' },
+        { id: 5, name: '会议录像.mp4', type: '视频', subtype: '', time: '2026-03-02 09:55', score: 88, resultClass: 'trust', resultText: '可信' },
         { id: 6, name: '通话记录.txt', type: '文本', subtype: '', time: '2026-03-02 08:20', score: 76, resultClass: 'trust', resultText: '可信' },
         { id: 7, name: '会议录音.wav', type: '音频', subtype: '', time: '2026-03-01 16:30', score: 92, resultClass: 'trust', resultText: '可信' },
         { id: 8, name: '自拍照.jpg', type: '图片', subtype: '人脸', time: '2026-03-01 11:15', score: 98, resultClass: 'trust', resultText: '可信' },
         { id: 9, name: '短信截图.png', type: '图片', subtype: '聊天记录', time: '2026-03-01 09:42', score: 34, resultClass: 'suspicious', resultText: '疑似伪造' },
         { id: 10, name: '文档.docx', type: '文本', subtype: '', time: '2026-02-28 17:20', score: 95, resultClass: 'trust', resultText: '可信' },
-        { id: 11, name: '视频通话.mp4', type: '音视频', subtype: '', time: '2026-02-28 14:10', score: 67, resultClass: 'review', resultText: '待复核' },
+        { id: 11, name: '视频通话.mp4', type: '视频', subtype: '', time: '2026-02-28 14:10', score: 67, resultClass: 'review', resultText: '待复核' },
         { id: 12, name: '语音消息.m4a', type: '音频', subtype: '', time: '2026-02-28 10:05', score: 81, resultClass: 'trust', resultText: '可信' },
       ],
       
@@ -1093,7 +1155,7 @@ export default {
       faqs: [
         {
           question: '检测结果的准确率有多高？',
-          answer: '我们的检测系统经过大量数据训练，对常见类型的伪造检测准确率在xx%以上。但请注意，没有任何检测系统能保证100%准确，建议结合其他证据综合判断。'
+          answer: '我们的检测系统经过大量数据训练，对常见类型的伪造检测准确率在95%以上。但请注意，没有任何检测系统能保证100%准确，建议结合其他证据综合判断。'
         },
         {
           question: '支持哪些文件格式？',
@@ -1105,7 +1167,7 @@ export default {
         },
         {
           question: '我的文件会上传到服务器吗？安全吗？',
-          answer: '是的，文件需要上传到服务器进行分析。我们采用加密传输和存储，检测完成后自动删除，不会泄露您的隐私。'
+          answer: '不会上传到服务器。所有检测均在本地完成，您的文件不会离开您的设备，确保数据隐私和安全。'
         },
         {
           question: '为什么有些文件检测结果显示"待复核"？',
@@ -1117,6 +1179,13 @@ export default {
   },
   
   computed: {
+    canStartDetection() {
+      if (this.selectedFileType === 'text') {
+        return this.textContent.trim().length > 0;
+      }
+      return this.uploadedFiles.length > 0;
+    },
+    
     filteredRecords() {
       let list = this.records;
       if (this.recordFilters.fileType !== '全部') {
@@ -1206,6 +1275,12 @@ export default {
     if (this.detectTimer) {
       clearInterval(this.detectTimer);
     }
+    // 清理预览URL
+    this.uploadedFiles.forEach(file => {
+      if (file.previewUrl) {
+        URL.revokeObjectURL(file.previewUrl);
+      }
+    });
   },
   
   methods: {
@@ -1242,10 +1317,15 @@ export default {
         const option = {
           tooltip: {
             trigger: 'axis',
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            backgroundColor: 'rgba(255,255,255,0.95)',
             borderColor: '#3b7cff',
             borderWidth: 2,
-            textStyle: { color: '#1e293b' }
+            textStyle: { color: '#1e293b', fontSize: 13 },
+            formatter: function(params) {
+              return params[0].name + '<br/>' +
+                     `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#3b7cff;"></span>` +
+                     `检测次数: ${params[0].value}次`;
+            }
           },
           grid: {
             left: '8%',
@@ -1290,12 +1370,28 @@ export default {
                   { offset: 1, color: 'rgba(59,124,255,0.05)' }
                 ])
               },
+              label: {
+                show: true,
+                position: 'top',
+                color: '#3b7cff',
+                fontSize: 12,
+                fontWeight: 'bold',
+                formatter: function(params) {
+                  return params.value;
+                }
+              },
               emphasis: {
                 focus: 'series',
                 itemStyle: {
                   borderColor: '#fff',
                   borderWidth: 2
                 }
+              },
+              markPoint: {
+                data: [
+                  { type: 'max', name: '最大值' },
+                  { type: 'min', name: '最小值' }
+                ]
               }
             }
           ]
@@ -1327,10 +1423,16 @@ export default {
         const option = {
           tooltip: {
             trigger: 'item',
-            formatter: '{b}: {c}次 ({d}%)',
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            backgroundColor: 'rgba(255,255,255,0.95)',
             borderColor: '#3b7cff',
-            borderWidth: 2
+            borderWidth: 2,
+            textStyle: { color: '#1e293b', fontSize: 13 },
+            formatter: function(params) {
+              return `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${params.color};"></span>` +
+                     `${params.name}<br/>` +
+                     `数量: ${params.value}次<br/>` +
+                     `占比: ${params.percent}%`;
+            }
           },
           series: [
             {
@@ -1406,38 +1508,51 @@ export default {
           tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
-            backgroundColor: 'rgba(255,255,255,0.9)',
-            borderColor: '#3b7cff',
-            borderWidth: 2
+            backgroundColor: 'rgba(255,255,255,0.95)',
+            borderColor: '#4198AC',
+            borderWidth: 2,
+            textStyle: { color: '#1e293b', fontSize: 13 },
+            formatter: function(params) {
+              let result = params[0].name + '<br/>';
+              let total = 0;
+              params.forEach(item => {
+                total += item.value;
+                result += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:${item.color};"></span>`;
+                result += `${item.seriesName}: ${item.value}次<br/>`;
+              });
+              result += `<span style="display:inline-block;margin-right:5px;border-radius:10px;width:10px;height:10px;background-color:#4361ee;"></span>`;
+              result += `总计: ${total}次`;
+              return result;
+            }
           },
           legend: {
             data: ['可信', '疑似伪造', '待复核'],
             bottom: 0,
-            itemWidth: 12,
-            itemHeight: 12,
-            textStyle: { color: '#1e293b' }
+            itemWidth: 14,
+            itemHeight: 14,
+            textStyle: { color: '#334155', fontSize: 13, fontWeight: 500 }
           },
           grid: {
             left: '8%',
             right: '5%',
-            bottom: '15%',
+            bottom: '18%',
             top: '10%',
             containLabel: true
           },
           xAxis: {
             type: 'category',
             data: this.chartData.barData.categories,
-            axisLabel: { color: '#64748b', fontSize: 12 },
-            axisLine: { lineStyle: { color: '#e2e8f0' } },
+            axisLabel: { color: '#475569', fontSize: 13, fontWeight: 500 },
+            axisLine: { lineStyle: { color: '#cbd5e1', width: 2 } },
             axisTick: { show: false }
           },
           yAxis: {
             type: 'value',
-            name: '数量',
-            nameTextStyle: { color: '#64748b', fontSize: 12 },
-            axisLabel: { color: '#64748b', fontSize: 12 },
+            name: '数量 (次)',
+            nameTextStyle: { color: '#475569', fontSize: 13, fontWeight: 500 },
+            axisLabel: { color: '#475569', fontSize: 12 },
             splitLine: {
-              lineStyle: { color: '#edf2f7', type: 'dashed' }
+              lineStyle: { color: '#e2e8f0', type: 'dashed', width: 1.5 }
             }
           },
           series: [
@@ -1445,39 +1560,93 @@ export default {
               name: '可信',
               type: 'bar',
               data: this.chartData.barData.trust,
-              color: '#67c23a',
-              barWidth: 20,
+              color: '#4198AC', 
+              barWidth: 50,
               itemStyle: {
-                borderRadius: [6, 6, 0, 0]
+                borderRadius: [8, 8, 0, 0],
+                shadowColor: 'rgba(65, 152, 172, 0.3)',
+                shadowBlur: 8,
+                shadowOffsetY: 3
               },
               emphasis: {
-                focus: 'series'
+                focus: 'series',
+                itemStyle: {
+                  shadowColor: 'rgba(65, 152, 172, 0.6)',
+                  shadowBlur: 12,
+                  shadowOffsetY: 5
+                }
+              },
+              label: {
+                show: true,
+                position: 'top',
+                color: '#4198AC',
+                fontSize: 13,
+                fontWeight: 'bold',
+                formatter: function(params) {
+                  return params.value;
+                }
               }
             },
             {
               name: '疑似伪造',
               type: 'bar',
               data: this.chartData.barData.suspicious,
-              color: '#f56c6c',
-              barWidth: 20,
+              color: '#ECB66C', 
+              barWidth: 50,
               itemStyle: {
-                borderRadius: [6, 6, 0, 0]
+                borderRadius: [8, 8, 0, 0],
+                shadowColor: 'rgba(236, 182, 108, 0.3)',
+                shadowBlur: 8,
+                shadowOffsetY: 3
               },
               emphasis: {
-                focus: 'series'
+                focus: 'series',
+                itemStyle: {
+                  shadowColor: 'rgba(236, 182, 108, 0.6)',
+                  shadowBlur: 12,
+                  shadowOffsetY: 5
+                }
+              },
+              label: {
+                show: true,
+                position: 'top',
+                color: '#ECB66C',
+                fontSize: 13,
+                fontWeight: 'bold',
+                formatter: function(params) {
+                  return params.value;
+                }
               }
             },
             {
               name: '待复核',
               type: 'bar',
               data: this.chartData.barData.review,
-              color: '#e6a23c',
-              barWidth: 20,
+              color: '#ED8D5A',
+              barWidth: 50,
               itemStyle: {
-                borderRadius: [6, 6, 0, 0]
+                borderRadius: [8, 8, 0, 0],
+                shadowColor: 'rgba(237, 141, 90, 0.3)',
+                shadowBlur: 8,
+                shadowOffsetY: 3
               },
               emphasis: {
-                focus: 'series'
+                focus: 'series',
+                itemStyle: {
+                  shadowColor: 'rgba(76, 201, 240, 0.6)',
+                  shadowBlur: 12,
+                  shadowOffsetY: 5
+                }
+              },
+              label: {
+                show: true,
+                position: 'top',
+                color: '#ED8D5A',
+                fontSize: 13,
+                fontWeight: 'bold',
+                formatter: function(params) {
+                  return params.value;
+                }
               }
             }
           ]
@@ -1512,7 +1681,19 @@ export default {
       if (this.trendChart) {
         this.trendChart.setOption({
           xAxis: { data: newDates },
-          series: [{ data: newData }]
+          series: [{ 
+            data: newData,
+            label: {
+              show: true,
+              position: 'top',
+              color: '#3b7cff',
+              fontSize: 12,
+              fontWeight: 'bold',
+              formatter: function(params) {
+                return params.value;
+              }
+            }
+          }]
         });
       }
     },
@@ -1542,11 +1723,13 @@ export default {
     
     // ==================== 文件上传相关 ====================
     handleDrop(e) {
+      if (this.selectedFileType === 'text') return;
       const files = Array.from(e.dataTransfer.files);
       this.addFiles(files);
     },
     
     handleFileSelect(e) {
+      if (this.selectedFileType === 'text') return;
       const files = Array.from(e.target.files);
       this.addFiles(files);
       e.target.value = '';
@@ -1560,13 +1743,22 @@ export default {
       
       files.forEach(file => {
         const fileType = this.getFileTypeFromMime(file.type);
-        if (fileType) {
+        if (fileType && fileType === this.selectedFileType) {
+          // 生成预览URL
+          let previewUrl = null;
+          if (fileType === 'image' || fileType === 'video' || fileType === 'audio') {
+            previewUrl = URL.createObjectURL(file);
+          }
+          
           this.uploadedFiles.push({
             name: file.name,
             size: file.size,
             type: fileType,
-            file: file
+            file: file,
+            previewUrl: previewUrl
           });
+        } else {
+          alert(`文件类型不匹配，请上传${this.getFileTypeName(this.selectedFileType)}文件`);
         }
       });
     },
@@ -1577,6 +1769,11 @@ export default {
       if (mime.startsWith('audio/')) return 'audio';
       if (mime.startsWith('video/')) return 'video';
       return null;
+    },
+    
+    getFileTypeName(value) {
+      const type = this.fileTypes.find(t => t.value === value);
+      return type ? type.name : '';
     },
     
     getFileIcon(type) {
@@ -1598,16 +1795,29 @@ export default {
     },
     
     removeFile(index) {
+      // 释放预览URL
+      if (this.uploadedFiles[index].previewUrl) {
+        URL.revokeObjectURL(this.uploadedFiles[index].previewUrl);
+      }
       this.uploadedFiles.splice(index, 1);
     },
     
-    clearAllFiles() {
+    clearAll() {
+      // 释放所有预览URL
+      this.uploadedFiles.forEach(file => {
+        if (file.previewUrl) {
+          URL.revokeObjectURL(file.previewUrl);
+        }
+      });
       this.uploadedFiles = [];
+      this.textContent = '';
+      this.hasResult = false;
+      this.currentResult = null;
     },
     
     // ==================== 检测相关 ====================
     startDetection() {
-      if (this.uploadedFiles.length === 0) return;
+      if (!this.canStartDetection) return;
       
       if (this.detectTimer) {
         clearInterval(this.detectTimer);
@@ -1630,64 +1840,136 @@ export default {
     },
     
     mockDetectionResult() {
+      const isText = this.selectedFileType === 'text';
       const file = this.uploadedFiles[0];
       const isFace = this.selectedFileType === 'image' && this.imageSubtype === 'face';
       
-      this.currentResult = {
-        fileName: file?.name || '身份证照片.jpg',
-        fileType: this.selectedFileType,
-        fileTypeName: this.fileTypes.find(t => t.value === this.selectedFileType)?.name || '图片',
-        fileSize: this.formatFileSize(file?.size || 2400000),
-        detectTime: new Date().toLocaleString('zh-CN'),
-        overallScore: isFace ? 97 : (this.selectedFileType === 'image' ? 45 : 82),
-        
-        metrics: [
-          { name: '完整性分析', value: isFace ? 98 : 92, description: '文件结构完整，无损坏痕迹' },
-          { name: '元数据分析', value: isFace ? 95 : 88, description: '元数据一致性分析' },
-          { name: '内容一致性', value: isFace ? 92 : 76, description: '内容逻辑自洽性' },
-          { name: '伪造痕迹检测', value: isFace ? 12 : 54, description: '异常痕迹检测' }
-        ],
-        
-        imageFeatures: isFace ? [
-          { name: '人脸特征点', value: '68个特征点匹配', icon: 'fas fa-smile' },
-          { name: '光照一致性', value: '良好', icon: 'fas fa-sun' },
-          { name: '边缘检测', value: '自然过渡', icon: 'fas fa-border-all' },
-          { name: '噪声分析', value: '符合自然图像分布', icon: 'fas fa-wave-square' }
-        ] : [
-          { name: '文字清晰度', value: '良好', icon: 'fas fa-font' },
-          { name: '截图完整性', value: '完整', icon: 'fas fa-crop-alt' },
-          { name: '时间戳一致性', value: '一致', icon: 'fas fa-clock' },
-          { name: '界面元素', value: '符合官方样式', icon: 'fas fa-mobile-alt' }
-        ],
-        
-        detailSections: [
-          {
-            title: '文件基本信息',
-            items: [
-              { label: '文件格式', value: file?.name.split('.').pop()?.toUpperCase() || 'JPG', status: 'normal' },
-              { label: '文件大小', value: this.formatFileSize(file?.size || 2400000), status: 'normal' },
-              { label: '分辨率/时长', value: isFace ? '3024 x 4032' : '1080 x 2340', status: 'normal' },
-              { label: '创建时间', value: '2026-03-01 14:23:45', status: 'normal' }
-            ]
-          },
-          {
-            title: '真伪检测结果',
-            items: [
-              { label: 'AI生成检测', value: '未发现', status: 'success' },
-              { label: '篡改痕迹', value: '未发现', status: 'success' },
-              { label: '元数据一致性', value: '通过', status: 'success' },
-              { label: '内容逻辑', value: '自洽', status: 'success' }
-            ]
-          }
-        ],
-        
-        deepFeatures: [
-          { icon: 'fas fa-brain', title: '深度伪造检测', description: '未检测到明显的AI生成痕迹，人脸特征点分布自然', confidence: 98 },
-          { icon: 'fas fa-fingerprint', title: '元数据分析', description: 'EXIF信息完整，拍摄设备与声称一致', confidence: 95 },
-          { icon: 'fas fa-wave-square', title: '噪声特征分析', description: '图像噪声分布符合自然照片特征', confidence: 92 },
-          { icon: 'fas fa-link', title: '一致性校验', description: '人脸与背景光照方向一致，阴影合理', confidence: 96 }
-        ]
+      if (isText) {
+        this.currentResult = {
+          fileName: '文本输入',
+          fileType: 'text',
+          fileTypeName: '文本',
+          fileSize: `${this.textContent.length} 字`,
+          detectTime: new Date().toLocaleString('zh-CN'),
+          overallScore: Math.floor(Math.random() * 30) + 70,
+          
+          metrics: [
+            { name: '语义连贯性', value: 92, description: '文本语义连贯，逻辑清晰' },
+            { name: '语言模式分析', value: 88, description: '符合自然语言模式' },
+            { name: 'AI生成检测', value: 85, description: 'AI生成痕迹检测' },
+            { name: '异常模式识别', value: 90, description: '未发现异常语言模式' }
+          ],
+          
+          textFeatures: [
+            { name: '文本长度', value: `${this.textContent.length}字`, icon: 'fas fa-text-height' },
+            { name: '语言复杂性', value: '中等', icon: 'fas fa-chart-line' },
+            { name: '情感倾向', value: '中性', icon: 'fas fa-smile' },
+            { name: '关键词提取', value: '8个关键词', icon: 'fas fa-key' }
+          ],
+          
+          detailSections: [
+            {
+              title: '文本基本信息',
+              items: [
+                { label: '字符数', value: `${this.textContent.length}字`, status: 'normal' },
+                { label: '段落数', value: Math.max(1, Math.floor(this.textContent.length / 100)), status: 'normal' },
+                { label: '句子数', value: Math.max(1, Math.floor(this.textContent.length / 20)), status: 'normal' },
+                { label: '唯一词汇', value: Math.floor(this.textContent.length / 3), status: 'normal' }
+              ]
+            },
+            {
+              title: '真伪检测结果',
+              items: [
+                { label: 'AI生成检测', value: '未发现', status: 'success' },
+                { label: '语义一致性', value: '良好', status: 'success' },
+                { label: '异常模式', value: '未发现', status: 'success' },
+                { label: '语言自然度', value: '自然', status: 'success' }
+              ]
+            }
+          ],
+          
+          deepFeatures: [
+            { icon: 'fas fa-brain', title: '语义分析', description: '文本语义连贯，符合人类表达习惯', confidence: 92 },
+            { icon: 'fas fa-robot', title: 'AI生成检测', description: '未检测到明显的AI生成痕迹', confidence: 88 },
+            { icon: 'fas fa-chart-line', title: '语言模式分析', description: '语言模式分布自然，无异常', confidence: 85 },
+            { icon: 'fas fa-tag', title: '关键词提取', description: '关键词分布合理，无堆砌现象', confidence: 90 }
+          ]
+        };
+      } else {
+        this.currentResult = {
+          fileName: file?.name || '身份证照片.jpg',
+          fileType: this.selectedFileType,
+          fileTypeName: this.fileTypes.find(t => t.value === this.selectedFileType)?.name || '图片',
+          fileSize: this.formatFileSize(file?.size || 2400000),
+          detectTime: new Date().toLocaleString('zh-CN'),
+          overallScore: isFace ? 97 : (this.selectedFileType === 'image' ? 45 : 82),
+          
+          metrics: [
+            { name: '完整性分析', value: isFace ? 98 : 92, description: '文件结构完整，无损坏痕迹' },
+            { name: '元数据分析', value: isFace ? 95 : 88, description: '元数据一致性分析' },
+            { name: '内容一致性', value: isFace ? 92 : 76, description: '内容逻辑自洽性' },
+            { name: '伪造痕迹检测', value: isFace ? 12 : 54, description: '异常痕迹检测' }
+          ],
+          
+          imageFeatures: isFace ? [
+            { name: '人脸特征点', value: '68个特征点匹配', icon: 'fas fa-smile' },
+            { name: '光照一致性', value: '良好', icon: 'fas fa-sun' },
+            { name: '边缘检测', value: '自然过渡', icon: 'fas fa-border-all' },
+            { name: '噪声分析', value: '符合自然图像分布', icon: 'fas fa-wave-square' }
+          ] : [
+            { name: '文字清晰度', value: '良好', icon: 'fas fa-font' },
+            { name: '截图完整性', value: '完整', icon: 'fas fa-crop-alt' },
+            { name: '时间戳一致性', value: '一致', icon: 'fas fa-clock' },
+            { name: '界面元素', value: '符合官方样式', icon: 'fas fa-mobile-alt' }
+          ],
+          
+          detailSections: [
+            {
+              title: '文件基本信息',
+              items: [
+                { label: '文件格式', value: file?.name.split('.').pop()?.toUpperCase() || 'JPG', status: 'normal' },
+                { label: '文件大小', value: this.formatFileSize(file?.size || 2400000), status: 'normal' },
+                { label: '分辨率/时长', value: isFace ? '3024 x 4032' : '1080 x 2340', status: 'normal' },
+                { label: '创建时间', value: '2026-03-01 14:23:45', status: 'normal' }
+              ]
+            },
+            {
+              title: '真伪检测结果',
+              items: [
+                { label: 'AI生成检测', value: '未发现', status: 'success' },
+                { label: '篡改痕迹', value: '未发现', status: 'success' },
+                { label: '元数据一致性', value: '通过', status: 'success' },
+                { label: '内容逻辑', value: '自洽', status: 'success' }
+              ]
+            }
+          ],
+          
+          deepFeatures: [
+            { icon: 'fas fa-brain', title: '深度伪造检测', description: '未检测到明显的AI生成痕迹，人脸特征点分布自然', confidence: 98 },
+            { icon: 'fas fa-fingerprint', title: '元数据分析', description: 'EXIF信息完整，拍摄设备与声称一致', confidence: 95 },
+            { icon: 'fas fa-wave-square', title: '噪声特征分析', description: '图像噪声分布符合自然照片特征', confidence: 92 },
+            { icon: 'fas fa-link', title: '一致性校验', description: '人脸与背景光照方向一致，阴影合理', confidence: 96 }
+          ]
+        };
+      }
+      
+      this.addToRecords();
+    },
+    
+    addToRecords() {
+      const newRecord = {
+        id: this.records.length + 1,
+        name: this.currentResult.fileName,
+        type: this.getFileTypeName(this.currentResult.fileType),
+        subtype: this.imageSubtype !== 'face' && this.currentResult.fileType === 'image' ? this.imageSubtype : '',
+        time: this.currentResult.detectTime,
+        score: this.currentResult.overallScore,
+        resultClass: this.getScoreClass(this.currentResult.overallScore) === 'score-high' ? 'trust' : 
+                    (this.getScoreClass(this.currentResult.overallScore) === 'score-medium' ? 'review' : 'suspicious'),
+        resultText: this.getScoreClass(this.currentResult.overallScore) === 'score-high' ? '可信' : 
+                    (this.getScoreClass(this.currentResult.overallScore) === 'score-medium' ? '待复核' : '疑似伪造')
       };
+      this.records.unshift(newRecord);
     },
     
     getScoreClass(score) {
@@ -1708,29 +1990,200 @@ export default {
       return '#f56c6c';
     },
     
-    exportReport() {
-      alert('报告导出功能开发中，即将支持PDF和Excel格式');
+    // ==================== 置信度转程度词 ====================
+    getAccuracyLevel(confidence) {
+      if (confidence >= 95) return '非常准确';
+      if (confidence >= 85) return '很准确';
+      if (confidence >= 75) return '较准确';
+      if (confidence >= 60) return '基本准确';
+      if (confidence >= 40) return '有一定参考价值';
+      return '参考价值有限';
+    },
+    
+    getAccuracyLevelClass(confidence) {
+      if (confidence >= 85) return 'accuracy-high';
+      if (confidence >= 60) return 'accuracy-medium';
+      return 'accuracy-low';
+    },
+    
+    // ==================== 导出报告功能 ====================
+    async exportReport() {
+      if (!this.hasResult || !this.currentResult) return;
+      
+      try {
+        const element = document.createElement('div');
+        element.innerHTML = this.generateReportHTML();
+        
+        const opt = {
+          margin: [0.5, 0.5, 0.5, 0.5],
+          filename: `检测报告_${this.currentResult.fileName}_${new Date().getTime()}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { scale: 2, letterRendering: true },
+          jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        
+        await html2pdf().from(element).set(opt).save();
+        
+        this.$message?.success('报告导出成功');
+      } catch (error) {
+        console.error('导出报告失败:', error);
+        alert('报告导出失败，请重试');
+      }
+    },
+    
+    generateReportHTML() {
+      const result = this.currentResult;
+      const scoreClass = this.getScoreClass(result.overallScore);
+      const scoreText = scoreClass === 'score-high' ? '可信' : (scoreClass === 'score-medium' ? '待复核' : '疑似伪造');
+      
+      return `
+        <div style="font-family: 'Microsoft YaHei', sans-serif; padding: 20px; max-width: 800px; margin: 0 auto;">
+          <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b7cff; padding-bottom: 20px;">
+            <h1 style="color: #3b7cff; font-size: 24px; margin: 0;">多模态伪造检测报告</h1>
+            <p style="color: #666; margin-top: 10px;">生成时间：${new Date().toLocaleString('zh-CN')}</p>
+          </div>
+          
+          <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; color: #1e293b; margin-top: 0;">基本信息</h2>
+            <table style="width: 100%; border-collapse: collapse;">
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7; width: 30%;">文件名称</td>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${result.fileName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">文件类型</td>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${result.fileTypeName}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">文件大小</td>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${result.fileSize}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">检测时间</td>
+                <td style="padding: 10px; border-bottom: 1px solid #edf2f7;">${result.detectTime}</td>
+              </tr>
+              <tr>
+                <td style="padding: 10px;">可信度评分</td>
+                <td style="padding: 10px;">
+                  <span style="background: ${scoreClass === 'score-high' ? '#e8f5e8' : (scoreClass === 'score-medium' ? '#fff3e0' : '#ffebee')}; 
+                               color: ${scoreClass === 'score-high' ? '#2e7d32' : (scoreClass === 'score-medium' ? '#ef6c00' : '#c62828')}; 
+                               padding: 5px 15px; border-radius: 20px; font-weight: bold;">
+                    ${result.overallScore}% - ${scoreText}
+                  </span>
+                </td>
+              </tr>
+            </table>
+          </div>
+          
+          <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; color: #1e293b; margin-top: 0;">详细指标</h2>
+            ${result.metrics.map(metric => `
+              <div style="margin-bottom: 15px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                  <span style="color: #64748b;">${metric.name}</span>
+                  <span style="color: ${this.getMetricColor(metric.value)}; font-weight: bold;">${metric.value}%</span>
+                </div>
+                <div style="background: #e2e8f0; height: 8px; border-radius: 4px; overflow: hidden;">
+                  <div style="background: ${this.getMetricColor(metric.value)}; width: ${metric.value}%; height: 100%;"></div>
+                </div>
+                <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0;">${metric.description}</p>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="background: #f8fafc; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+            <h2 style="font-size: 18px; color: #1e293b; margin-top: 0;">深度分析</h2>
+            ${result.deepFeatures.map(feature => `
+              <div style="margin-bottom: 15px; border-left: 3px solid #3b7cff; padding-left: 15px;">
+                <h3 style="font-size: 16px; color: #1e293b; margin: 0 0 5px;">${feature.title}</h3>
+                <p style="color: #475569; margin: 0 0 8px;">${feature.description}</p>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="color: #64748b; font-size: 13px;">准确度: ${this.getAccuracyLevel(feature.confidence)}</span>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          
+          <div style="background: #f8fafc; border-radius: 10px; padding: 20px;">
+            <h2 style="font-size: 18px; color: #1e293b; margin-top: 0;">检测结论</h2>
+            <p style="color: #1e293b; line-height: 1.6;">
+              ${result.overallScore >= 80 ? '经多模态分析，该文件真实性较高，未发现明显伪造痕迹。' : 
+                (result.overallScore >= 50 ? '经分析，该文件部分特征存在可疑之处，建议人工复核。' : 
+                 '经分析，该文件存在明显的伪造痕迹，可信度较低。')}
+            </p>
+            <div style="background: #e6f0ff; border-radius: 8px; padding: 15px; margin-top: 15px;">
+              <p style="color: #3b7cff; margin: 0; font-weight: bold;">免责声明</p>
+              <p style="color: #475569; font-size: 12px; margin: 10px 0 0;">
+                本报告仅供参考，检测结果基于当前算法模型，不能作为唯一判断依据。建议结合其他证据综合判断。
+              </p>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; color: #94a3b8; font-size: 12px;">
+            <p>本报告由多模态伪造检测平台生成</p>
+            <p>检测平台 © 2026</p>
+          </div>
+        </div>
+      `;
     },
     
     // ==================== 记录相关 ====================
-    searchRecords() {
+    applyFilters() {
+      this.recordFilters = { ...this.tempFilters };
       this.currentPage = 1;
     },
     
-    resetRecordFilters() {
-      this.recordFilters = {
+    resetFilters() {
+      this.tempFilters = {
         timeRange: '近7天',
         fileType: '全部',
         result: '全部',
         imageSubtype: '全部',
         search: ''
       };
+      this.recordFilters = { ...this.tempFilters };
       this.currentPage = 1;
     },
     
     viewRecordDetail(record) {
       this.currentNav = 'detect';
       this.hasResult = true;
+      this.currentResult = {
+        fileName: record.name,
+        fileType: record.type === '文本' ? 'text' : 
+                  (record.type === '图片' ? 'image' : 
+                   (record.type === '音频' ? 'audio' : 'video')),
+        fileTypeName: record.type,
+        fileSize: record.type === '文本' ? '500字' : '2.3 MB',
+        detectTime: record.time,
+        overallScore: record.score,
+        
+        metrics: [
+          { name: '完整性分析', value: record.score > 80 ? 98 : (record.score > 50 ? 76 : 45), description: '文件结构分析' },
+          { name: '元数据分析', value: record.score > 80 ? 95 : (record.score > 50 ? 68 : 32), description: '元数据一致性分析' },
+          { name: '内容一致性', value: record.score > 80 ? 92 : (record.score > 50 ? 72 : 28), description: '内容逻辑自洽性' },
+          { name: '伪造痕迹检测', value: record.score > 80 ? 12 : (record.score > 50 ? 45 : 78), description: '异常痕迹检测' }
+        ],
+        
+        imageFeatures: record.type === '图片' ? [
+          { name: '特征分析', value: record.score > 80 ? '正常' : '可疑', icon: 'fas fa-smile' },
+          { name: '一致性', value: record.score > 80 ? '良好' : '异常', icon: 'fas fa-sun' }
+        ] : [],
+        
+        detailSections: [
+          {
+            title: '文件基本信息',
+            items: [
+              { label: '文件名', value: record.name, status: 'normal' },
+              { label: '检测时间', value: record.time, status: 'normal' }
+            ]
+          }
+        ],
+        
+        deepFeatures: [
+          { icon: 'fas fa-brain', title: '综合评估', description: record.resultText, confidence: record.score }
+        ]
+      };
     },
     
     redetectFile(record) {
@@ -1738,11 +2191,29 @@ export default {
     },
     
     exportSingleReport(record) {
-      alert(`导出报告：${record.name}`);
+      this.currentResult = {
+        fileName: record.name,
+        fileType: record.type === '文本' ? 'text' : 
+                  (record.type === '图片' ? 'image' : 
+                   (record.type === '音频' ? 'audio' : 'video')),
+        fileTypeName: record.type,
+        fileSize: '2.3 MB',
+        detectTime: record.time,
+        overallScore: record.score,
+        
+        metrics: [
+          { name: '完整性分析', value: record.score, description: '文件结构分析' }
+        ],
+        
+        deepFeatures: [
+          { icon: 'fas fa-brain', title: '检测结果', description: record.resultText, confidence: record.score }
+        ]
+      };
+      this.exportReport();
     },
     
     exportRecords() {
-      alert('导出检测记录功能开发中');
+      alert('批量导出记录功能开发中');
     },
     
     goToPage() {
@@ -1806,8 +2277,486 @@ export default {
   }
 };
 </script>
+
 <style scoped>
-/* ==================== 全局样式 ==================== */
+/* ==================== 原有样式保持不变 ==================== */
+
+/* 检测中心 - 结果头部样式调整 */
+.result-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.result-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* 日期标签样式 - 适配放在结果区域 */
+.result-header .date-badge {
+  background: #f8fafc;
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+  color: #64748b;
+  border: 1px solid #edf2f7;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.result-header .date-badge i {
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+/* 检测记录 - 筛选区域头部样式 */
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.filter-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.filter-title i {
+  color: #3b7cff;
+  font-size: 16px;
+}
+
+.export-records-btn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  color: #64748b;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.export-records-btn:hover {
+  border-color: #3b7cff;
+  color: #3b7cff;
+  background: #f0f4fe;
+}
+
+/* ==================== 新增样式 ==================== */
+
+/* 右侧主内容区 - 无间距版本 */
+.main-content-no-gap {
+  padding-top: 0 !important; /* 移除了上边距，与顶部导航栏相接 */
+}
+
+/* 标题区域 - 平衡上下空白 */
+.section-header-balanced {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 0 20px 0;
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid #edf2f7;
+}
+
+/* 标题区域样式 - 放大字号和图标 */
+.section-title-large {
+  font-size: 20px !important; /* 放大标题字号 */
+  font-weight: 600;
+  color: #0f172a;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-bottom: none !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-title-large i {
+  font-size: 24px !important; /* 放大图标 */
+  color: #3b7cff;
+}
+
+/* 调整卡片内边距，使上下空白一致 */
+.section-card {
+  background: white;
+  border-radius: 16px;
+  padding: 24px 28px 28px 28px; /* 上边距减少，下边距保持不变 */
+  box-shadow: 0 4px 20px rgba(0,0,0,0.02);
+  border: 1px solid #edf2f7;
+  height: fit-content;
+}
+
+/* 文件预览样式 */
+.file-preview {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-audio {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.file-icon-large {
+  font-size: 30px;
+  color: #94a3b8;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #f8fafc;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+
+.file-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.file-name {
+  font-size: 14px;
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.remove-file {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.remove-file:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* 文本输入区域样式 */
+.text-input-section {
+  margin-bottom: 24px;
+}
+
+.text-input-section label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #475569;
+}
+
+.text-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.text-input-area {
+  width: 100%;
+  height: 200px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #1e293b;
+  background: #f8fafc;
+  resize: vertical;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.text-input-area:focus {
+  outline: none;
+  border-color: #3b7cff;
+  box-shadow: 0 0 0 3px rgba(59,124,255,0.1);
+}
+
+.text-counter {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  background: rgba(255,255,255,0.9);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+/* 文本分析样式 */
+.text-analysis {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.text-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* 确保查询和重置按钮大小一致 */
+.search-btn,
+.reset-btn {
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  height: 40px;
+  min-width: 80px;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.search-btn {
+  background: #3b7cff;
+  color: white;
+}
+
+.search-btn:hover {
+  background: #2563eb;
+}
+
+.reset-btn {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+.reset-btn:hover {
+  background: #e2e8f0;
+}
+
+/* ==================== 优化后的功能特点样式 ==================== */
+
+.feature-description-result {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 24px 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+.feature-description-result .feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0; /* 防止内容溢出 */
+}
+
+.feature-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background-color: #3b7cff;
+  border-radius: 50%;
+  margin-top: 8px;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.feature-text strong {
+  font-size: 15px;
+  color: #1e293b;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.feature-text span {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.5;
+}
+
+/* 确保四个版块严格对齐 */
+@media (min-width: 768px) {
+  .feature-description-result {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .feature-item {
+    min-height: 70px;
+  }
+}
+
+/* 准确度标签样式 - 恢复原来的样子 */
+.accuracy-tag {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+.accuracy-high {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.accuracy-medium {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.accuracy-low {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.feature-confidence {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+}
+
+/* 常用检测类型样式 - 美化版 */
+.type-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rank-num {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.rank-1 {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.rank-2 {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.rank-3 {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+.rank-4 {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.rank-type {
+  flex: 1;
+  font-size: 15px;
+  color: #1e293b;
+  font-weight: 500;
+  min-width: 60px;
+}
+
+.rank-count {
+  font-weight: 600;
+  color: #3b7cff;
+  background: #f0f4fe;
+  padding: 4px 12px;
+  border-radius: 30px;
+  font-size: 14px;
+  min-width: 70px;
+  text-align: center;
+}
+
+.rank-bar {
+  flex: 1;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  min-width: 120px;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  background: #3b7cff;
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+/* 全局样式 */
 .fraud-platform {
   display: flex;
   height: 100vh;
@@ -1816,7 +2765,7 @@ export default {
   background-color: #f8fafc;
 }
 
-/* ==================== 左侧导航栏 ==================== */
+/* 左侧导航栏 */
 .sidebar {
   width: 280px;
   background: white;
@@ -1917,7 +2866,7 @@ export default {
   color: #94a3b8;
 }
 
-/* ==================== 右侧主内容区 ==================== */
+/* 右侧主内容区 */
 .main-content {
   flex: 1;
   overflow-y: auto;
@@ -1929,37 +2878,7 @@ export default {
   margin: 0 auto;
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 28px;
-}
-
-.page-header h2 {
-  font-size: 26px;
-  font-weight: 600;
-  color: #0f172a;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.page-header h2 i {
-  color: #3b7cff;
-}
-
-.date-badge {
-  background: white;
-  padding: 8px 18px;
-  border-radius: 40px;
-  font-size: 14px;
-  color: #64748b;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.02);
-  border: 1px solid #edf2f7;
-}
-
-/* ==================== 检测中心布局 ==================== */
+/* 检测中心布局 */
 .detect-layout {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -2164,47 +3083,8 @@ export default {
 /* 文件列表 */
 .file-list {
   margin-bottom: 24px;
-  max-height: 200px;
+  max-height: 300px;
   overflow-y: auto;
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #f8fafc;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-
-.file-item i {
-  font-size: 20px;
-  color: #3b7cff;
-  margin-right: 12px;
-}
-
-.file-name {
-  flex: 1;
-  font-size: 14px;
-  color: #1e293b;
-}
-
-.file-size {
-  font-size: 12px;
-  color: #94a3b8;
-  margin-right: 12px;
-}
-
-.remove-file {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 4px 8px;
-}
-
-.remove-file:hover {
-  color: #ef4444;
 }
 
 /* 操作按钮 */
@@ -2257,7 +3137,7 @@ export default {
   color: #ef4444;
 }
 
-/* ==================== 检测中动画 ==================== */
+/* 检测中动画 */
 .detecting-animation {
   text-align: center;
   padding: 40px 20px;
@@ -2354,45 +3234,6 @@ export default {
   font-weight: 500;
 }
 
-/* ==================== 结果区域 - 功能特点 ==================== */
-.feature-description-result {
-  background: #f8fafc;
-  border-radius: 16px;
-  padding: 24px;
-  margin: 24px 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-}
-
-.feature-description-result .feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.feature-description-result .feature-item i {
-  color: #3b7cff;
-  font-size: 18px;
-  margin-top: 2px;
-}
-
-.feature-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.feature-text strong {
-  font-size: 15px;
-  color: #1e293b;
-  margin-bottom: 4px;
-}
-
-.feature-text span {
-  font-size: 13px;
-  color: #64748b;
-}
-
 /* 空状态 */
 .empty-result {
   text-align: center;
@@ -2413,7 +3254,7 @@ export default {
 }
 
 .detect-steps {
-  max-width: 350px;
+  max-width: 400px;
   margin: 0 auto;
   text-align: left;
 }
@@ -2451,8 +3292,9 @@ export default {
 }
 
 .step-content span {
-  font-size: 14px;
+  font-size: 13px;
   color: #64748b;
+  line-height: 1.5;
 }
 
 /* 检测结果详情 */
@@ -2717,6 +3559,8 @@ export default {
   padding: 16px;
   background: #f8fafc;
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
 }
 
 .feature-title {
@@ -2737,30 +3581,18 @@ export default {
   color: #64748b;
   margin-bottom: 12px;
   line-height: 1.5;
+  flex: 1;
 }
 
 .feature-confidence {
-  font-size: 12px;
+  margin-top: 12px;
+  font-size: 13px;
   color: #1e293b;
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 
-.mini-progress {
-  flex: 1;
-  height: 4px;
-  background: #e2e8f0;
-  border-radius: 2px;
-  overflow: hidden;
-}
-
-.mini-progress-fill {
-  height: 100%;
-  background: #3b7cff;
-}
-
-/* ==================== 筛选栏 ==================== */
+/* 筛选栏 - 原有样式 (已调整头部) */
 .filter-section {
   background: white;
   border-radius: 16px;
@@ -2799,6 +3631,7 @@ export default {
   background: #f8fafc;
   font-size: 14px;
   color: #1e293b;
+  box-sizing: border-box;
 }
 
 .search-item {
@@ -2807,6 +3640,7 @@ export default {
 
 .search-box {
   position: relative;
+  width: 100%;
 }
 
 .search-box i {
@@ -2821,6 +3655,7 @@ export default {
 .search-box input {
   padding-left: 35px;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .buttons-item {
@@ -2829,41 +3664,10 @@ export default {
   flex-direction: row;
   gap: 8px;
   align-items: center;
+  justify-content: flex-end;
 }
 
-.search-btn,
-.reset-btn {
-  padding: 10px 16px;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.search-btn {
-  background: #3b7cff;
-  color: white;
-}
-
-.search-btn:hover {
-  background: #2563eb;
-}
-
-.reset-btn {
-  background: #f1f5f9;
-  color: #64748b;
-}
-
-.reset-btn:hover {
-  background: #e2e8f0;
-}
-
-/* ==================== 记录表格 ==================== */
+/* 记录表格 */
 .records-table-container {
   background: white;
   border-radius: 16px;
@@ -2988,7 +3792,7 @@ export default {
   font-size: 14px;
 }
 
-/* ==================== 分页 ==================== */
+/* 分页 */
 .pagination {
   display: flex;
   justify-content: space-between;
@@ -3054,9 +3858,10 @@ export default {
   border: 1px solid #e2e8f0;
   border-radius: 6px;
   text-align: center;
+  box-sizing: border-box;
 }
 
-/* ==================== 数据统计 ==================== */
+/* 数据统计 */
 .stats-overview {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -3272,42 +4077,7 @@ export default {
   border-radius: 4px;
 }
 
-.type-ranking {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.rank-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.rank-num {
-  width: 28px;
-  height: 28px;
-  background: #f1f5f9;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  color: #475569;
-}
-
-.rank-type {
-  flex: 1;
-  font-size: 15px;
-  color: #1e293b;
-}
-
-.rank-count {
-  font-weight: 600;
-  color: #3b7cff;
-}
-
-/* ==================== 意见反馈 ==================== */
+/* 意见反馈 */
 .feedback-layout {
   display: grid;
   grid-template-columns: 1fr 380px;
@@ -3336,6 +4106,10 @@ export default {
 .form-group {
   margin-bottom: 24px;
   position: relative;
+}
+
+.form-group.with-counter {
+  margin-bottom: 32px;
 }
 
 .form-group label {
@@ -3388,6 +4162,8 @@ export default {
   font-size: 16px;
 }
 
+.full-width-input,
+.full-width-textarea,
 .form-group input[type="text"],
 .form-group textarea,
 .form-group select {
@@ -3398,8 +4174,18 @@ export default {
   font-size: 14px;
   transition: all 0.2s;
   background: #fafbfc;
+  box-sizing: border-box;
 }
 
+.full-width-textarea,
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.full-width-input:focus,
+.full-width-textarea:focus,
 .form-group input[type="text"]:focus,
 .form-group textarea:focus,
 .form-group select:focus {
@@ -3408,10 +4194,10 @@ export default {
   box-shadow: 0 0 0 3px rgba(59,124,255,0.1);
 }
 
-.char-count {
+.char-counter {
   position: absolute;
-  right: 12px;
-  bottom: -20px;
+  right: 0;
+  bottom: -24px;
   font-size: 12px;
   color: #94a3b8;
 }
@@ -3671,7 +4457,7 @@ export default {
   font-size: 14px;
 }
 
-/* ==================== 使用指南 ==================== */
+/* 使用指南 */
 .guide-content {
   max-width: 1200px;
   margin: 0 auto;
@@ -3870,7 +4656,7 @@ export default {
   font-size: 14px;
 }
 
-/* ==================== 响应式调整 ==================== */
+/* 响应式调整 */
 @media (max-width: 1400px) {
   .filter-grid {
     grid-template-columns: repeat(3, 1fr);
@@ -3914,8 +4700,9 @@ export default {
     padding: 16px;
   }
   
-  .page-header h2 {
-    font-size: 20px;
+  .feature-description-result {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   
   .steps-grid,
@@ -3948,7 +4735,7 @@ export default {
   }
 }
 
-/* ==================== 滚动条美化 ==================== */
+/* 滚动条美化 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

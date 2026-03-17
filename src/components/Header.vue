@@ -5,9 +5,20 @@
       <div class="navbar-left">
         <!-- 网站Logo - 使用router-link跳转到首页 -->
         <router-link to="/" class="logo">
+          <!-- 只替换这一部分：图标部分 -->
           <div class="logo-icon-wrapper">
-            <span class="logo-icon">🛡️</span>
-            <span class="logo-shield-glow"></span>
+            <!-- ChatGPT风格简约线条图标 -->
+            <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- 外圈 - 极简圆环 -->
+              <circle cx="18" cy="18" r="14" stroke="#4aa3ff" stroke-width="1.5" fill="none"/>
+              <!-- 内圈 - 同心圆 -->
+              <circle cx="18" cy="18" r="8" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.7"/>
+              <!-- 中心点 -->
+              <circle cx="18" cy="18" r="2" fill="#4aa3ff"/>
+              <!-- 两条优雅的弧线（象征保护/检测） -->
+              <path d="M10 12 C14 8, 22 8, 26 12" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.6"/>
+              <path d="M10 24 C14 28, 22 28, 26 24" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.6"/>
+            </svg>
           </div>
           <div class="logo-text-wrapper">
             <span class="logo-text">DeepReal</span>
@@ -603,4 +614,5 @@ export default {
   font-size: 0.8rem;
   opacity: 0.8;
 }
+
 </style>
