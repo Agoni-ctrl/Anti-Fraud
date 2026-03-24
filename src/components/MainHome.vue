@@ -32,7 +32,7 @@
             诈骗话术，为您和家人的数字生活保驾护航。
           </p>
           <div class="hero-cta">
-            <button class="btn btn-primary" @click="exploreFeatures">
+            <button class="btn btn-primary" @click="goToDetection">
               <span>开始使用</span>
               <i class="fas fa-arrow-right"></i>
             </button>
@@ -206,12 +206,14 @@ export default {
       }
     },
     
-    // 按钮方法
-    exploreFeatures() {
-      alert("请使用上方导航栏选择具体功能");
+    // 跳转到真伪识别页面
+    goToDetection() {
+      this.$router.push('/detection');
     },
+    
+    // 紧急求助方法
     handleEmergency() {
-      alert("紧急求助通道已开启，请保持冷静，我们将立即联系您");
+      alert("紧急求助通道已开启，请保持冷静，我们将立即联系您\n\n反诈专线：96110");
     },
   },
 };
@@ -409,27 +411,27 @@ export default {
 /* ===== Hero区域 ===== */
 .hero-split-section {
   display: grid;
-  grid-template-columns: 1.3fr 1fr; /* 进一步加大左侧比例，从1.2fr增加到1.3fr */
-  gap: 0.8rem; /* 进一步减小间隙，从1rem减到0.8rem */
+  grid-template-columns: 1.3fr 1fr;
+  gap: 0.8rem;
   align-items: center;
   width: 100%;
-  margin-left: 2%; /* 减小整体右移幅度，从5%减到2% */
+  margin-left: 2%;
 }
 
-/* ===== 左侧文案（文字加大，稍微靠左） ===== */
+/* ===== 左侧文案 ===== */
 .hero-content {
   display: flex;
   flex-direction: column;
-  max-width: 650px; /* 增加最大宽度，从600px增加到650px */
-  margin-left: 8%; /* 减小左边距，从15%减到8%，让文案靠左 */
+  max-width: 650px;
+  margin-left: 8%;
   position: relative;
-  left: 10px; /* 减小向右偏移，从20px减到10px */
+  left: 10px;
 }
 
 .hero-title {
-  font-size: 4rem; /* 从3.5rem加大到4rem */
+  font-size: 4rem;
   font-weight: 800;
-  line-height: 1.1; /* 减小行高使更紧凑 */
+  line-height: 1.1;
   margin-bottom: 0.5rem;
   color: #113946;
   letter-spacing: -0.02em;
@@ -443,18 +445,18 @@ export default {
 }
 
 .hero-subtitle {
-  font-size: 1.3rem; /* 从1.15rem加大到1.3rem */
+  font-size: 1.3rem;
   font-weight: 500;
   color: #2c5f7b;
   margin-bottom: 0.4rem;
 }
 
 .hero-description {
-  font-size: 1.15rem; /* 从1.05rem加大到1.15rem */
+  font-size: 1.15rem;
   color: #3e6b8c;
   line-height: 1.5;
   margin-bottom: 1.2rem;
-  max-width: 550px; /* 增加最大宽度，从520px增加到550px */
+  max-width: 550px;
 }
 
 /* ===== 按钮 ===== */
@@ -466,9 +468,9 @@ export default {
 }
 
 .btn {
-  padding: 0.8rem 2.2rem; /* 从0.75rem 2rem加大到0.8rem 2.2rem */
+  padding: 0.8rem 2.2rem;
   border-radius: 60px;
-  font-size: 1.05rem; /* 从1rem加大到1.05rem */
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -495,6 +497,12 @@ export default {
   border: 1px solid #cae0f0;
 }
 
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  background: #f8fafc;
+  border-color: #3182ce;
+}
+
 /* ===== 标签 ===== */
 .hero-badges {
   display: flex;
@@ -505,9 +513,9 @@ export default {
 .badge-item {
   background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(2px);
-  padding: 0.4rem 1.2rem; /* 从0.35rem 1.1rem加大到0.4rem 1.2rem */
+  padding: 0.4rem 1.2rem;
   border-radius: 60px;
-  font-size: 0.95rem; /* 从0.9rem加大到0.95rem */
+  font-size: 0.95rem;
   color: #1d618b;
   border: 1px solid #d2e6ff;
   transition: 0.2s;
@@ -520,15 +528,15 @@ export default {
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin-right: 3%; /* 减小右边距，从5%减到3% */
+  margin-right: 3%;
 }
 
 /* Logo轮播容器 */
 .logo-carousel {
   position: relative;
   width: 100%;
-  max-width: 420px; /* 从440px减到420px，进一步让右侧变小 */
-  min-height: 400px; /* 从420px减到400px */
+  max-width: 420px;
+  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -564,7 +572,7 @@ export default {
 .logo-slide svg {
   width: 100%;
   height: auto;
-  max-width: 360px; /* 从380px减到360px */
+  max-width: 360px;
 }
 
 /* 文字说明区 */
@@ -575,7 +583,7 @@ export default {
 }
 
 .caption-main {
-  font-size: 1.2rem; /* 从1.25rem稍微减小到1.2rem，与放大的左侧形成对比 */
+  font-size: 1.2rem;
   font-weight: 600;
   margin-bottom: 0.15rem;
   background: linear-gradient(145deg, #1e4a7a, #3182ce);
@@ -585,7 +593,7 @@ export default {
 }
 
 .caption-sub {
-  font-size: 0.88rem; /* 稍微减小 */
+  font-size: 0.88rem;
   color: #3e6b8c;
   display: flex;
   align-items: center;
@@ -639,7 +647,7 @@ export default {
   }
   
   .hero-title {
-    font-size: 3.2rem; /* 移动端适当减小 */
+    font-size: 3.2rem;
   }
   
   .hero-logo {

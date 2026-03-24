@@ -5,23 +5,18 @@
       <div class="navbar-left">
         <!-- 网站Logo - 使用router-link跳转到首页 -->
         <router-link to="/" class="logo">
-          <!-- 只替换这一部分：图标部分 -->
+          <!-- Logo图标部分 -->
           <div class="logo-icon-wrapper">
-            <!-- ChatGPT风格简约线条图标 -->
             <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- 外圈 - 极简圆环 -->
               <circle cx="18" cy="18" r="14" stroke="#4aa3ff" stroke-width="1.5" fill="none"/>
-              <!-- 内圈 - 同心圆 -->
               <circle cx="18" cy="18" r="8" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.7"/>
-              <!-- 中心点 -->
               <circle cx="18" cy="18" r="2" fill="#4aa3ff"/>
-              <!-- 两条优雅的弧线（象征保护/检测） -->
               <path d="M10 12 C14 8, 22 8, 26 12" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.6"/>
               <path d="M10 24 C14 28, 22 28, 26 24" stroke="#4aa3ff" stroke-width="1.2" fill="none" opacity="0.6"/>
             </svg>
           </div>
           <div class="logo-text-wrapper">
-            <span class="logo-text">DeepReal</span>
+            <span class="logo-text">Anti-Fraud</span>
             <span class="logo-tagline">反诈·守护</span>
           </div>
         </router-link>
@@ -39,8 +34,16 @@
           <!-- AI真伪识别 -->
           <li class="nav-item">
             <router-link to="/detection" class="nav-link" :class="{ active: $route.path === '/detection' }">
-              <i class="fas fa-robot nav-icon"></i>
+              <i class="fa-solid fa-magnifying-glass nav-icon"></i>
               <span>AI真伪识别</span>
+            </router-link>
+          </li>
+
+          <!-- AI反诈助手 - 使用 clipboard-question 图标 -->
+          <li class="nav-item">
+            <router-link to="/ai-assistant" class="nav-link" :class="{ active: $route.path === '/ai-assistant' }">
+              <i class="fas fa-robot nav-icon"></i>
+              <span>AI反诈助手</span>
             </router-link>
           </li>
 
@@ -87,14 +90,12 @@
 
       <!-- 右上角：紧急求助 + 登录/注册合并按钮 -->
       <div class="navbar-right">
-        <!-- 醒目的紧急求助按钮（带脉冲效果） -->
         <button class="emergency-btn" @click="handleEmergency">
           <i class="fas fa-exclamation-triangle btn-icon"></i>
           <span>紧急求助</span>
           <span class="emergency-pulse"></span>
         </button>
 
-        <!-- 合并的登录/注册按钮 -->
         <button class="auth-btn login-register" @click="goToAuth">
           <i class="fas fa-user-shield btn-icon"></i>
           <span>登录 / 注册</span>
@@ -102,10 +103,10 @@
       </div>
     </div>
 
-    <!-- 反诈标语滚动条 -->
+    <!-- 反诈标语滚动条 - anti-fake 图标已改为 fa-brands fa-hornbill -->
     <div class="anti-fraud-ticker">
       <div class="ticker-content">
-        <i class="fas fa-shield-alt"></i> 全民反诈，你我同行 · 守护财产安全，从我做起 · 96110 反诈专线
+        <i class="fa-brands fa-hornbill"></i> 全民反诈，你我同行 · 守护财产安全，从我做起 · 96110 反诈专线
       </div>
     </div>
   </nav>
@@ -129,12 +130,9 @@ export default {
       }
     },
     handleEmergency() {
-      // 处理紧急求助逻辑
-      window.location.href = 'tel:110' // 或者弹出提示框
       alert('紧急求助：请拨打 110 或 96110 反诈专线')
     },
     goToAuth() {
-      // 跳转到登录/注册页面
       this.$router.push('/auth')
     }
   }
@@ -142,8 +140,7 @@ export default {
 </script>
 
 <style scoped>
-
-/* 天蓝色为主色调 */
+/* 所有样式保持不变 */
 .navbar {
   background: linear-gradient(to right, #ffffff, #f0f9ff);
   box-shadow: 0 4px 20px rgba(0, 100, 178, 0.12);
@@ -164,7 +161,6 @@ export default {
   height: 72px;
 }
 
-/* 左侧布局 */
 .navbar-left {
   display: flex;
   align-items: center;
@@ -172,7 +168,6 @@ export default {
   height: 100%;
 }
 
-/* Logo 样式 - 增强反诈骗元素 */
 .logo {
   display: flex;
   align-items: center;
@@ -180,6 +175,7 @@ export default {
   cursor: pointer;
   padding: 0.25rem 0;
   position: relative;
+  text-decoration: none;
 }
 
 .logo-icon-wrapper {
@@ -187,39 +183,6 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.logo-icon {
-  font-size: 2.4rem;
-  filter: drop-shadow(0 2px 4px rgba(0,100,178,0.4));
-  position: relative;
-  z-index: 2;
-}
-
-/* 盾牌光晕效果 - 反诈视觉元素 */
-.logo-shield-glow {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(0,100,178,0.3) 0%, rgba(0,151,255,0) 70%);
-  border-radius: 50%;
-  animation: shieldPulse 2s infinite;
-  z-index: 1;
-}
-
-@keyframes shieldPulse {
-  0% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: scale(1.3);
-    opacity: 0.3;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
 }
 
 .logo-text-wrapper {
@@ -248,7 +211,6 @@ export default {
   padding-left: 6px;
 }
 
-/* 导航菜单 */
 .nav-menu {
   display: flex;
   list-style: none;
@@ -283,7 +245,6 @@ export default {
   overflow: hidden;
 }
 
-/* 反诈元素 - 导航链接悬停时的盾牌微光 */
 .nav-link::after {
   content: '';
   position: absolute;
@@ -305,11 +266,6 @@ export default {
   color: #0064b2;
 }
 
-/* Font Awesome 图标样式 */
-.nav-icon, .dropdown-item-icon, .btn-icon {
-  font-size: 1.2rem;
-}
-
 .nav-icon {
   font-size: 1.3rem;
   color: #0064b2;
@@ -329,7 +285,6 @@ export default {
   transform: rotate(180deg);
 }
 
-/* 下拉菜单样式 */
 .dropdown-menu {
   position: absolute;
   top: 100%;
@@ -387,14 +342,12 @@ export default {
   color: #0064b2;
 }
 
-/* 右侧区域 */
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
 
-/* 紧急求助按钮 - 增强反诈元素 */
 .emergency-btn {
   display: flex;
   align-items: center;
@@ -420,7 +373,6 @@ export default {
   box-shadow: 0 8px 16px rgba(211, 47, 47, 0.4);
 }
 
-/* 紧急按钮脉冲效果 */
 .emergency-pulse {
   position: absolute;
   top: 50%;
@@ -449,7 +401,6 @@ export default {
   }
 }
 
-/* 合并的登录/注册按钮 */
 .auth-btn.login-register {
   display: flex;
   align-items: center;
@@ -464,7 +415,7 @@ export default {
   background: linear-gradient(145deg, #0064b2, #0099ff);
   color: white;
   border: none;
-  box-shadow: 0 4px 10px rgba(0,100,178,0.3);
+  box-shadow: 0 4px 10px rgba(0, 100, 178, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -472,27 +423,13 @@ export default {
 .auth-btn.login-register:hover {
   background: linear-gradient(145deg, #0055a0, #0088ee);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0,100,178,0.2);
-}
-
-.auth-btn.login-register::before {
-  content: '🛡️';
-  position: absolute;
-  left: -20px;
-  opacity: 0.2;
-  font-size: 1.2rem;
-  transition: left 0.3s ease;
-}
-
-.auth-btn.login-register:hover::before {
-  left: 5px;
+  box-shadow: 0 8px 16px rgba(0, 100, 178, 0.2);
 }
 
 .btn-icon {
   font-size: 1.1rem;
 }
 
-/* 反诈标语滚动条 - 增加反诈氛围 */
 .anti-fraud-ticker {
   width: 100%;
   background: linear-gradient(to right, #0064b2, #0099ff);
@@ -501,7 +438,7 @@ export default {
   font-size: 0.8rem;
   overflow: hidden;
   position: relative;
-  border-top: 1px solid rgba(255,255,255,0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .ticker-content {
@@ -523,7 +460,26 @@ export default {
   }
 }
 
-/* 响应式调整 */
+.nav-link.active {
+  background: rgba(0, 100, 178, 0.12);
+  color: #0064b2;
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  width: 80%;
+  background: #0064b2;
+}
+
+.nav-link.active .nav-icon {
+  color: #0064b2;
+}
+
+.dropdown-item.router-link-active {
+  background: rgba(0, 100, 178, 0.08);
+  color: #0064b2;
+}
+
 @media (max-width: 1200px) {
   .navbar-left {
     gap: 1rem;
@@ -535,7 +491,7 @@ export default {
     padding: 0 0.75rem;
   }
   .anti-fraud-ticker {
-    display: none; /* 小屏幕隐藏滚动条 */
+    display: none;
   }
 }
 
@@ -560,59 +516,4 @@ export default {
     justify-content: center;
   }
 }
-
-/* 保持你原有的样式不变，只需要添加active状态样式 */
-.nav-link.active {
-  background: rgba(0, 100, 178, 0.12);
-  color: #0064b2;
-  font-weight: 600;
-}
-
-.nav-link.active::after {
-  width: 80%;
-  background: #0064b2;
-}
-
-.nav-link.active .nav-icon {
-  color: #0064b2;
-}
-
-/* Logo 的 router-link 样式 */
-.logo {
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  cursor: pointer;
-  padding: 0.25rem 0;
-  position: relative;
-}
-
-/* 下拉菜单中的 router-link 样式 */
-.dropdown-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  text-decoration: none;
-  color: #1a2a3a;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  position: relative;
-}
-
-.dropdown-item.router-link-active {
-  background: rgba(0, 100, 178, 0.08);
-  color: #0064b2;
-}
-
-.dropdown-item.router-link-active::before {
-  content: '🛡️';
-  position: absolute;
-  left: 0.5rem;
-  font-size: 0.8rem;
-  opacity: 0.8;
-}
-
 </style>
