@@ -1,3 +1,4 @@
+
 <template>
   <div class="fraud-platform">
     <!-- 左侧导航栏 (保持不变) -->
@@ -44,6 +45,9 @@
                 <h3 class="section-title-large"><i class="fas fa-cloud-upload-alt"></i> 文件上传</h3>
               </div>
               
+              <!-- ==================== 文件类型选择器 ==================== -->
+              <!-- 功能说明：用户选择检测对象的类型（文本/图片/音频/视频） -->
+              <!-- 接入说明：如需增加新的检测类型，在 fileTypes 数组中添加即可 -->
               <div class="file-type-selector">
                 <label>检测对象：</label>
                 <div class="type-buttons">
@@ -60,7 +64,9 @@
                 </div>
               </div>
 
-              <!-- 图片子类选择 -->
+              <!-- ==================== 图片子类选择 ==================== -->
+              <!-- 功能说明：仅当选择图片类型时显示，用于区分人脸照片和聊天记录截图 -->
+              <!-- 接入说明：如需增加新的图片子类，在 subtype-options 中添加即可 -->
               <div v-if="selectedFileType === 'image'" class="subtype-selector">
                 <label>图片类型：</label>
                 <div class="subtype-options">
@@ -75,7 +81,9 @@
                 </div>
               </div>
 
-              <!-- 模型选择 -->
+              <!-- ==================== 检测模型选择器 ==================== -->
+              <!-- 功能说明：用户可以选择不同的检测模型，针对不同内容优化检测效果 -->
+              <!-- 接入说明：如需增加新的检测模型，在 model-select 的 option 中添加即可 -->
               <div class="model-selector">
                 <label>检测模型：</label>
                 <select v-model="selectedModel" class="model-select">
@@ -87,7 +95,10 @@
                 </select>
               </div>
 
-              <!-- 文本输入区域（当选择文本类型时显示） -->
+              <!-- ==================== 文本输入区域 ==================== -->
+              <!-- 功能说明：当选择文本类型时，显示文本输入框，用户可直接输入文本内容 -->
+              <!-- 接入说明：文本内容通过 textContent 变量获取，可在此处添加文本预处理逻辑 -->
+              <!-- 限制：最多500字，可通过 maxlength 属性调整 -->
               <div v-if="selectedFileType === 'text'" class="text-input-section">
                 <label>请输入要检测的文本内容：</label>
                 <div class="text-input-container">
@@ -101,7 +112,14 @@
                 </div>
               </div>
 
-              <!-- 文件上传区域（非文本类型时显示） -->
+              <!-- ==================== 文件上传区域 ==================== -->
+              <!-- 功能说明：当选择图片/音频/视频时，显示文件上传区域 -->
+              <!-- 接入说明：
+                   1. accept="*/*" 表示接受所有类型，实际类型限制在 addFiles 方法中实现
+                   2. 如需限制特定文件类型，可修改 accept 属性，如 accept="image/*,audio/*,video/*"
+                   3. 支持拖拽上传和点击上传两种方式
+                   4. 最多支持10个文件，可通过修改 addFiles 中的判断条件调整
+              -->
               <div v-else class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
                 <input 
                   type="file" 
@@ -121,7 +139,13 @@
                 </div>
               </div>
 
-              <!-- 已选文件列表（非文本类型时显示）- 增加预览功能 -->
+              <!-- ==================== 已选文件列表 ==================== -->
+              <!-- 功能说明：显示已上传的文件列表，包含预览功能 -->
+              <!-- 接入说明：
+                   1. uploadedFiles 数组存储已上传的文件信息
+                   2. 每个文件对象包含：name(文件名), size(文件大小), type(文件类型), file(原始File对象), previewUrl(预览URL)
+                   3. 预览功能支持图片、视频、音频，如需支持其他格式可扩展
+              -->
               <div v-if="selectedFileType !== 'text' && uploadedFiles.length > 0" class="file-list">
                 <div v-for="(file, index) in uploadedFiles" :key="index" class="file-item">
                   <div class="file-preview">
@@ -144,7 +168,9 @@
                 </div>
               </div>
 
-              <!-- 操作按钮 -->
+              <!-- ==================== 操作按钮 ==================== -->
+              <!-- 功能说明：开始检测和清空按钮 -->
+              <!-- 接入说明：开始检测按钮的启用条件由 canStartDetection 计算属性控制 -->
               <div class="upload-actions">
                 <button class="start-detect-btn" @click="startDetection" :disabled="!canStartDetection">
                   <i class="fas fa-play"></i> 开始检测
@@ -163,6 +189,7 @@
                 <h3 class="section-title-large"><i class="fas fa-chart-bar"></i> 检测结果</h3>
                 <div class="result-header-actions">
                   <span class="date-badge"><i class="far fa-calendar"></i> {{ currentDate }}</span>
+                  <!-- 导出报告按钮 - 仅当有检测结果时显示 -->
                   <button v-if="hasResult" class="export-report-btn" @click="exportReport">
                     <i class="fas fa-file-export"></i> 导出报告
                   </button>
@@ -205,7 +232,7 @@
                 </div>
                 <h4>开始您的第一次检测</h4>
                 
-                <!-- 优化后的功能特点排版 - 蓝色圆点图标，严格对齐，内容扩写 -->
+                <!-- 功能特点展示 -->
                 <div class="feature-description-result">
                   <div class="feature-item">
                     <span class="feature-dot"></span>
@@ -237,6 +264,7 @@
                   </div>
                 </div>
 
+                <!-- 检测步骤说明 -->
                 <div class="detect-steps">
                   <div class="step">
                     <span class="step-num">1</span>
@@ -271,6 +299,7 @@
 
               <!-- 检测结果详情 -->
               <div v-else class="result-detail">
+                <!-- 文件信息卡片 -->
                 <div class="file-info-card">
                   <div class="file-icon">
                     <i :class="getFileIcon(currentResult.fileType)"></i>
@@ -278,9 +307,20 @@
                   <div class="file-details">
                     <div class="file-name">{{ currentResult.fileName }}</div>
                     <div class="file-meta">
-                      <span><i class="far fa-calendar-alt"></i> {{ currentResult.detectTime }}</span>
-                      <span><i class="far fa-file"></i> {{ currentResult.fileSize }}</span>
-                      <span><i class="fas fa-tag"></i> {{ currentResult.fileTypeName }}</span>
+                      <div class="meta-row">
+                        <span class="meta-item">
+                          <i class="far fa-calendar-alt"></i>
+                          <span class="meta-text">{{ currentResult.detectTime }}</span>
+                        </span>
+                        <span class="meta-item">
+                          <i class="far fa-file"></i>
+                          <span class="meta-text file-size-text">{{ currentResult.fileSize }}</span>
+                        </span>
+                        <span class="meta-item">
+                          <i class="fas fa-tag"></i>
+                          <span class="meta-text">{{ currentResult.fileTypeName }}</span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <div class="file-score" :class="getScoreClass(currentResult.overallScore)">
@@ -289,6 +329,7 @@
                   </div>
                 </div>
 
+                <!-- 分析标签页 -->
                 <div class="analysis-tabs">
                   <button 
                     class="tab-btn" 
@@ -313,6 +354,7 @@
                   </button>
                 </div>
 
+                <!-- 概览内容 -->
                 <div v-if="activeAnalysisTab === 'overview'" class="tab-content">
                   <div class="metrics-grid">
                     <div class="metric-item" v-for="metric in currentResult.metrics" :key="metric.name">
@@ -354,6 +396,7 @@
                   </div>
                 </div>
 
+                <!-- 详细分析内容 -->
                 <div v-if="activeAnalysisTab === 'details'" class="tab-content">
                   <div class="detail-analysis">
                     <div class="analysis-section" v-for="section in currentResult.detailSections" :key="section.title">
@@ -368,6 +411,7 @@
                   </div>
                 </div>
 
+                <!-- 特征分析内容 -->
                 <div v-if="activeAnalysisTab === 'features'" class="tab-content">
                   <div class="features-analysis">
                     <div class="feature-block" v-for="(feature, index) in currentResult.deepFeatures" :key="index">
@@ -2756,6 +2800,120 @@ export default {
   transition: width 0.3s;
 }
 
+/* ==================== 优化后的文件信息卡片样式 - 解决排版问题 ==================== */
+.file-info-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 14px;
+  margin-bottom: 24px;
+}
+
+.file-icon i {
+  font-size: 44px;
+  color: #3b7cff;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0; /* 防止flex子项溢出 */
+}
+
+.file-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+
+.file-meta {
+  width: 100%;
+}
+
+.meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  align-items: center;
+}
+
+.meta-item {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.meta-item i {
+  margin-right: 6px;
+  color: #94a3b8;
+  font-size: 12px;
+  width: 14px;
+  text-align: center;
+}
+
+.meta-text {
+  white-space: nowrap;
+}
+
+.file-size-text {
+  /* 确保文件大小文本不换行 */
+  white-space: nowrap;
+}
+
+.file-score {
+  text-align: center;
+  padding: 8px 20px;
+  border-radius: 10px;
+  min-width: 100px;
+  flex-shrink: 0;
+}
+
+.file-score.score-high {
+  background: #e8f5e8;
+  color: #2e7d32;
+}
+
+.file-score.score-medium {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.file-score.score-low {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.score-value {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.score-label {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+/* 响应式调整 - 小屏幕时元数据换行 */
+@media (max-width: 768px) {
+  .file-info-card {
+    flex-wrap: wrap;
+  }
+  
+  .meta-row {
+    gap: 16px;
+  }
+  
+  .file-score {
+    margin-left: auto;
+  }
+}
+
 /* 全局样式 */
 .fraud-platform {
   display: flex;
@@ -3295,78 +3453,6 @@ export default {
   font-size: 13px;
   color: #64748b;
   line-height: 1.5;
-}
-
-/* 检测结果详情 */
-.file-info-card {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 20px;
-  background: #f8fafc;
-  border-radius: 14px;
-  margin-bottom: 24px;
-}
-
-.file-icon i {
-  font-size: 44px;
-  color: #3b7cff;
-}
-
-.file-details {
-  flex: 1;
-}
-
-.file-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e293b;
-  margin-bottom: 6px;
-}
-
-.file-meta {
-  display: flex;
-  gap: 24px;
-  font-size: 13px;
-  color: #64748b;
-}
-
-.file-meta i {
-  margin-right: 6px;
-  color: #94a3b8;
-}
-
-.file-score {
-  text-align: center;
-  padding: 8px 20px;
-  border-radius: 10px;
-  min-width: 100px;
-}
-
-.file-score.score-high {
-  background: #e8f5e8;
-  color: #2e7d32;
-}
-
-.file-score.score-medium {
-  background: #fff3e0;
-  color: #ef6c00;
-}
-
-.file-score.score-low {
-  background: #ffebee;
-  color: #c62828;
-}
-
-.score-value {
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.score-label {
-  font-size: 12px;
-  opacity: 0.8;
 }
 
 /* 分析标签页 */
