@@ -1,0 +1,238 @@
+<template>
+  <div class="bg-white min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="identity-card p-8">
+        <div class="text-center mb-8">
+          <h1 class="text-3xl font-bold text-black mb-2">身份定制</h1>
+          <p class="text-gray-600">请选择您的身份特征，我们将为您定制专属反诈体验</p>
+        </div>
+
+        <form @submit.prevent="handleSubmit">
+          <!-- 年龄段选择 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-semibold text-black mb-4 flex items-center">
+              <span class="w-1 h-6 bg-blue-600 mr-3"></span>
+              年龄段
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div v-for="age in ageOptions" :key="age.value" @click="formData.age = age.value"
+                :class="['option-card p-4 text-center', { selected: formData.age === age.value }]">
+                <div class="text-4xl mb-2">{{ age.icon }}</div>
+                <div class="font-medium text-black">{{ age.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 性别选择 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-semibold text-black mb-4 flex items-center">
+              <span class="w-1 h-6 bg-blue-600 mr-3"></span>
+              性别
+            </h2>
+            <div class="grid grid-cols-2 gap-4">
+              <div v-for="gender in genderOptions" :key="gender.value" @click="formData.gender = gender.value"
+                :class="['option-card p-4 text-center', { selected: formData.gender === gender.value }]">
+                <div class="text-4xl mb-2">{{ gender.icon }}</div>
+                <div class="font-medium text-black">{{ gender.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 职业选择 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-semibold text-black mb-4 flex items-center">
+              <span class="w-1 h-6 bg-blue-600 mr-3"></span>
+              职业
+            </h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div v-for="occupation in occupationOptions" :key="occupation.value"
+                @click="formData.occupation = occupation.value"
+                :class="['option-card p-4 text-center', { selected: formData.occupation === occupation.value }]">
+                <div class="text-4xl mb-2">{{ occupation.icon }}</div>
+                <div class="font-medium text-black">{{ occupation.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 诈骗知识了解程度选择 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-semibold text-black mb-4 flex items-center">
+              <span class="w-1 h-6 bg-blue-600 mr-3"></span>
+              您是否了解诈骗相关知识
+            </h2>
+            <div class="grid grid-cols-3 gap-4">
+              <div v-for="knowledge in knowledgeOptions" :key="knowledge.value"
+                @click="formData.knowledge = knowledge.value"
+                :class="['option-card p-4 text-center', { selected: formData.knowledge === knowledge.value }]">
+                <div class="text-3xl mb-2">{{ knowledge.icon }}</div>
+                <div class="font-medium text-black">{{ knowledge.label }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 按钮组 -->
+          <div class="flex gap-4 mt-8">
+            <button type="button" @click="handleSkip" class="btn-secondary flex-1 py-3 text-lg font-medium">
+              跳过
+            </button>
+            <button type="submit" class="btn-primary flex-1 py-3 text-lg font-medium">
+              确认定制
+            </button>
+          </div>
+        </form>
+
+        <transition name="fade">
+          <div v-if="successMessage"
+            class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg text-green-600 text-center">
+            {{ successMessage }}
+          </div>
+        </transition>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+export default {
+  name: 'Identity',
+  data() {
+    return {
+      formData: {
+        age: '',
+        gender: '',
+        occupation: '',
+        knowledge: ''
+      },
+      ageOptions: [
+        { value: 'child', label: '儿童', icon: '👶' },
+        { value: 'youth', label: '青少年', icon: '🧑' },
+        { value: 'adult', label: '青壮年', icon: '👨' },
+        { value: 'elderly', label: '老年人', icon: '👴' }
+      ],
+      genderOptions: [
+        { value: 'male', label: '男性', icon: '👨' },
+        { value: 'female', label: '女性', icon: '👩' }
+      ],
+      occupationOptions: [
+        { value: 'student', label: '学生', icon: '📚' },
+        { value: 'worker', label: '工人', icon: '👷' },
+        { value: 'teacher', label: '教师', icon: '👨‍🏫' },
+        { value: 'doctor', label: '医生', icon: '👨‍⚕️' },
+        { value: 'engineer', label: '工程师', icon: '👨‍💻' },
+        { value: 'artist', label: '艺术家', icon: '🎨' },
+        { value: 'business', label: '商务', icon: '💼' },
+        { value: 'other', label: '其他', icon: '🔧' }
+      ],
+      knowledgeOptions: [
+        { value: 'knowledgeable', label: '比较了解', icon: '💡' },
+        { value: 'somewhat', label: '了解一点', icon: '📖' },
+        { value: 'unknown', label: '完全不了解', icon: '❓' }
+      ],
+      successMessage: ''
+    }
+  },
+  mounted() {
+    // 检查是否已登录
+    const isLogin = localStorage.getItem('isLogin')
+    if (!isLogin) {
+      this.$router.push('/login')
+    }
+  },
+  methods: {
+    handleSubmit() {
+      // 验证必填项
+      if (!this.formData.age) {
+        alert('请选择年龄段')
+        return
+      }
+      if (!this.formData.gender) {
+        alert('请选择性别')
+        return
+      }
+      if (!this.formData.occupation) {
+        alert('请选择职业')
+        return
+      }
+      if (!this.formData.knowledge) {
+        alert('请选择诈骗知识了解程度')
+        return
+      }
+
+      // 保存用户身份信息
+      localStorage.setItem('userIdentity', JSON.stringify(this.formData))
+
+      this.successMessage = '身份定制成功！正在跳转...'
+
+      setTimeout(() => {
+        this.$router.push('/')
+      }, 1500)
+    },
+    handleSkip() {
+      if (confirm('确定要跳过身份定制吗？您可以稍后在设置中完善信息。')) {
+        this.$router.push('/')
+      }
+    }
+  }
+}
+</script>
+
+<style scoped>
+.identity-card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.option-card {
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.option-card:hover {
+  border-color: #0071E3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.15);
+}
+
+.option-card.selected {
+  border-color: #0071E3;
+  background-color: rgba(0, 113, 227, 0.05);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
+}
+
+.btn-primary {
+  background-color: #0071E3;
+  color: white;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
+}
+
+.btn-secondary {
+  border: 2px solid #0071E3;
+  color: #0071E3;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(0, 113, 227, 0.1);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
