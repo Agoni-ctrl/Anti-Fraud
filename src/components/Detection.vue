@@ -21,15 +21,6 @@
         </div>
       </div>
       
-      <div class="sidebar-footer">
-        <div class="user-info">
-          <i class="fas fa-user-circle"></i>
-          <div class="user-detail">
-            <span class="user-name">张三</span>
-            <span class="user-email">zhangsan@example.com</span>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- 右侧主内容区 - 移除了上边距，与顶部导航栏相接 -->
@@ -87,9 +78,9 @@
               <div class="model-selector">
                 <label>检测模型：</label>
                 <select v-model="selectedModel" class="model-select">
-                  <option value="standard">标准检测模型（通用）</option>
+                  <option value="standard">人脸检测专精模型</option>
                   <option value="deep">深度伪造专精模型</option>
-                  <option value="face">人脸检测专精模型</option>
+                  <option value="face">聊天记录检测模型</option>
                   <option value="text">文本语义分析模型</option>
                   <option value="audio">音频伪造检测模型</option>
                 </select>
@@ -2992,37 +2983,6 @@ export default {
   box-shadow: 0 4px 12px rgba(59,124,255,0.25);
 }
 
-.sidebar-footer {
-  padding: 24px;
-  border-top: 1px solid #edf2f7;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-info i {
-  font-size: 40px;
-  color: #94a3b8;
-}
-
-.user-detail {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-weight: 600;
-  color: #1e293b;
-  font-size: 15px;
-}
-
-.user-email {
-  font-size: 12px;
-  color: #94a3b8;
-}
 
 /* 右侧主内容区 */
 .main-content {
