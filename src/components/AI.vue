@@ -149,11 +149,12 @@
                   class="message-wrapper"
                   :class="message.role"
                 >
-                  <div class="message-avatar">
-                    <i :class="message.role === 'user' ? 'fas fa-user' : 'fa-brands fa-hornbill'"></i>
+                  <!-- 右侧：去掉用户头像，只保留AI头像 -->
+                  <div class="message-avatar" v-if="message.role === 'assistant'">
+                    <i class="fa-brands fa-hornbill"></i>
                   </div>
-                  <div class="message-content">
-                    <div class="message-bubble">
+                  <div class="message-content" :class="{ 'user-message': message.role === 'user' }">
+                    <div class="message-bubble" :class="message.role">
                       <div v-html="formatMessage(message.content)" class="message-text"></div>
                       
                       <div v-if="message.riskLevel" class="risk-card" :class="message.riskLevel">
@@ -172,7 +173,7 @@
                         </div>
                       </div>
                     </div>
-                    <div class="message-time">{{ formatTime(message.timestamp) }}</div>
+                    <div class="message-time" :class="{ 'user-time': message.role === 'user' }">{{ formatTime(message.timestamp) }}</div>
                   </div>
                 </div>
                 
@@ -363,7 +364,6 @@ export default {
       this.sendMessage();
     },
     
-    // 核心：发送消息并实现打字机效果
     async sendMessage() {
       const content = this.inputMessage.trim();
       if (!content || this.isTyping) return;
@@ -382,7 +382,6 @@ export default {
       this.isTyping = true;
       
       try {
-        // 调用 Flask API
         const response = await fetch('http://localhost:5000/chat', {
           method: 'POST',
           headers: {
@@ -404,10 +403,8 @@ export default {
         const data = await response.json();
         
         if (data.success) {
-          // 🔥 关键：开始输出前，关闭打字指示器
           this.isTyping = false;
           
-          // 创建一个空的AI消息
           const aiMessage = {
             role: 'assistant',
             content: '',
@@ -416,7 +413,6 @@ export default {
           this.messages.push(aiMessage);
           this.scrollToBottom();
           
-          // 打字机效果：逐字显示
           const fullText = data.reply;
           let currentText = '';
           const chars = fullText.split('');
@@ -428,7 +424,6 @@ export default {
             this.scrollToBottom();
           }
           
-          // 添加风险等级
           this.messages[this.messages.length - 1].riskLevel = data.riskLevel || this.detectRiskLevel(content);
           this.saveCurrentChat();
         } else {
@@ -437,7 +432,6 @@ export default {
         
       } catch (error) {
         console.error('API调用失败:', error);
-        // 关闭打字指示器
         this.isTyping = false;
         const errorMessage = {
           role: 'assistant',
@@ -504,7 +498,7 @@ export default {
       const textarea = this.$refs.inputTextarea;
       if (textarea) {
         textarea.style.height = 'auto';
-        textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px';
       }
     },
     
@@ -843,17 +837,17 @@ export default {
   gap: 16px;
 }
 
-/* 侧边栏 */
+/* 侧边栏 - 优化颜色为浅蓝透明 */
 .sidebar {
   width: 280px;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(165, 208, 242, 0.2);
   backdrop-filter: blur(12px);
   border-radius: 0 0 24px 24px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s ease;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(66, 153, 225, 0.15);
+  border: 1px solid rgba(66, 153, 225, 0.2);
   border-top: none;
   margin-top: 0;
 }
@@ -867,7 +861,7 @@ export default {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(66, 153, 225, 0.1);
+  border-bottom: 1px solid rgba(66, 153, 225, 0.15);
 }
 
 .collapse-btn {
@@ -875,24 +869,35 @@ export default {
   height: 32px;
   border-radius: 10px;
   border: none;
-  background: rgba(66, 153, 225, 0.1);
+  background: rgba(66, 153, 225, 0.15);
   color: #4299ff;
   cursor: pointer;
   transition: all 0.2s;
 }
 
+.collapse-btn:hover {
+  background: rgba(66, 153, 225, 0.25);
+}
+
+/* 新对话按钮 - 浅蓝透明风格 */
 .new-chat-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: linear-gradient(135deg, #4299ff, #3182ce);
-  border: none;
+  background: rgba(66, 153, 225, 0.2);
+  border: 1px solid rgba(66, 153, 225, 0.3);
   border-radius: 40px;
-  color: white;
+  color: #3182ce;
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s;
+}
+
+.new-chat-btn:hover {
+  background: rgba(66, 153, 225, 0.3);
+  transform: translateY(-1px);
 }
 
 .history-list {
@@ -908,7 +913,7 @@ export default {
 .section-title {
   font-size: 12px;
   font-weight: 500;
-  color: #8ba0b5;
+  color: #7c9ac0;
   margin-bottom: 12px;
 }
 
@@ -924,18 +929,18 @@ export default {
 }
 
 .history-item:hover {
-  background: rgba(66, 153, 225, 0.08);
+  background: rgba(66, 153, 225, 0.12);
 }
 
 .history-item.active {
-  background: rgba(66, 153, 225, 0.12);
+  background: rgba(66, 153, 225, 0.2);
   border-left: 3px solid #4299ff;
 }
 
 .history-title {
   flex: 1;
   font-size: 14px;
-  color: #2c3e50;
+  color: #3a6b8f;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -945,7 +950,7 @@ export default {
   opacity: 0;
   background: none;
   border: none;
-  color: #cbd5e0;
+  color: #9bb7d4;
   cursor: pointer;
   padding: 4px;
 }
@@ -954,9 +959,13 @@ export default {
   opacity: 1;
 }
 
+.delete-btn:hover {
+  color: #e53e3e;
+}
+
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid rgba(66, 153, 225, 0.1);
+  border-top: 1px solid rgba(66, 153, 225, 0.15);
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -968,7 +977,7 @@ export default {
   justify-content: center;
   gap: 8px;
   padding: 10px;
-  background: rgba(66, 153, 225, 0.1);
+  background: rgba(66, 153, 225, 0.15);
   border: none;
   border-radius: 12px;
   color: #4299ff;
@@ -980,7 +989,7 @@ export default {
 }
 
 .back-home-btn:hover {
-  background: rgba(66, 153, 225, 0.2);
+  background: rgba(66, 153, 225, 0.25);
   transform: translateY(-1px);
 }
 
@@ -990,7 +999,7 @@ export default {
   justify-content: center;
   gap: 8px;
   font-size: 12px;
-  color: #8ba0b5;
+  color: #7c9ac0;
 }
 
 /* 主对话区域 */
@@ -1090,7 +1099,7 @@ export default {
   font-size: 14px;
 }
 
-/* 消息样式 */
+/* 消息样式 - 去掉用户头像 */
 .message-wrapper {
   display: flex;
   gap: 12px;
@@ -1099,22 +1108,18 @@ export default {
 }
 
 .message-wrapper.user {
-  flex-direction: row-reverse;
+  justify-content: flex-end;
 }
 
 .message-avatar {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #eef2f8;
+  background: rgba(66, 153, 225, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-}
-
-.message-wrapper.user .message-avatar {
-  background: linear-gradient(145deg, #4299ff, #3182ce);
 }
 
 .message-avatar i {
@@ -1122,26 +1127,32 @@ export default {
   color: #4299ff;
 }
 
-.message-wrapper.user .message-avatar i {
-  color: white;
-}
-
 .message-content {
   flex: 1;
   max-width: 80%;
 }
 
+.message-content.user-message {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
 .message-bubble {
-  background: white;
   padding: 12px 16px;
   border-radius: 18px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.message-bubble.assistant {
+  background: white;
   border: 1px solid #eef2f8;
 }
 
-.message-wrapper.user .message-bubble {
-  background: linear-gradient(135deg, #4299ff, #3182ce);
-  color: white;
+.message-bubble.user {
+  background: rgba(66, 153, 225, 0.15);
+  border: 1px solid rgba(66, 153, 225, 0.2);
+  color: #2c5f7b;
 }
 
 .message-text {
@@ -1157,9 +1168,10 @@ export default {
   margin-left: 8px;
 }
 
-.message-wrapper.user .message-time {
+.message-time.user-time {
   text-align: right;
   margin-right: 8px;
+  margin-left: 0;
 }
 
 /* 风险卡片 */
@@ -1246,7 +1258,6 @@ export default {
   opacity: 0.6;
 }
 
-/* 分别设置每个点的动画延迟 */
 .typing-indicator span:nth-child(1) {
   animation-delay: 0s;
 }
@@ -1270,7 +1281,7 @@ export default {
   }
 }
 
-/* 输入区域优化 - 防止移动 */
+/* 输入区域优化 - 自动调整高度 */
 .input-container {
   padding: 16px 24px 20px;
   border-top: 1px solid rgba(66, 153, 225, 0.1);
@@ -1284,7 +1295,7 @@ export default {
   align-items: flex-end;
   background: white;
   border-radius: 24px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   border: 1px solid #e2edf7;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   transform: translateY(0);
@@ -1305,9 +1316,11 @@ export default {
   padding: 8px 0;
   resize: none;
   font-family: inherit;
-  max-height: 100px;
+  max-height: 200px;
+  min-height: 40px;
   background: transparent;
   line-height: 1.5;
+  overflow-y: auto;
 }
 
 .message-input:focus {
@@ -1316,8 +1329,8 @@ export default {
 }
 
 .send-btn {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   border: none;
   background: #4299ff;
@@ -1328,6 +1341,8 @@ export default {
   justify-content: center;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  align-self: flex-end;
+  margin-bottom: 4px;
 }
 
 .send-btn:hover:not(:disabled) {
@@ -1396,6 +1411,10 @@ export default {
   
   .questions-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .message-content {
+    max-width: 85%;
   }
 }
 </style>

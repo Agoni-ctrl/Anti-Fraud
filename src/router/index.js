@@ -32,22 +32,33 @@ const routes = [
     name: 'AboutUs',
     component: AboutUs
   },
-  // 如果你的人群守护子页面也需要路由，可以添加：
+  // 人群守护子页面路由
+  {
+    path: '/guard/elder',
+    name: 'ElderGuard',
+    component: () => import('../components/GuardElder.vue')
+  },
+  {
+    path: '/guard/kids',
+    name: 'KidsGuard',
+    component: () => import('../components/GuardKids.vue')
+  },
+  {
+    path: '/guard/work',
+    name: 'WorkGuard',
+    component: () => import('../components/GuardWork.vue')
+  },
+  // 紧急求助弹窗页面路由
   // {
-  //   path: '/guard/elder',
-  //   name: 'ElderGuard',
-    
-  //   component: () => import('../components/GuardElder.vue') 
+  //   path: '/emergency',
+  //   name: 'Emergency',
+  //   component: () => import('../components/EmergencyModal.vue')
   // },
+  // 登录/注册页面路由（预留）
   // {
-  //   path: '/guard/kids',
-  //   name: 'KidsGuard',
-  //   component: () => import('../components/GuardKids.vue')
-  // },
-  // {
-  //   path: '/guard/work',
-  //   name: 'WorkGuard',
-  //   component: () => import('../components/GuardWork.vue')
+  //   path: '/auth',
+  //   name: 'Auth',
+  //   component: () => import('../components/Auth.vue')  // 预留，之后创建此组件
   // }
 ]
 

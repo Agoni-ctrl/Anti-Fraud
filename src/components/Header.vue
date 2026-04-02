@@ -113,12 +113,19 @@
 </template>
 
 <script>
+import { inject } from 'vue'
+
 export default {
   name: 'AppNavbar',
   data() {
     return {
       activeDropdown: null
     }
+  },
+  setup() {
+    // 注入父组件提供的打开弹窗方法
+    const openEmergencyModal = inject('openEmergencyModal', null)
+    return { openEmergencyModal }
   },
   methods: {
     openDropdown(menu) {
@@ -130,7 +137,13 @@ export default {
       }
     },
     handleEmergency() {
-      alert('紧急求助：请拨打 110 或 96110 反诈专线')
+      // 调用打开弹窗的方法
+      if (this.openEmergencyModal) {
+        this.openEmergencyModal()
+      } else {
+        // 备用方案：如果注入失败，使用 alert
+        alert('紧急求助：请拨打 110 或 96110 反诈专线')
+      }
     },
     goToAuth() {
       this.$router.push('/auth')
