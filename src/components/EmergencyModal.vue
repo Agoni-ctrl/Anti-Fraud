@@ -2,6 +2,9 @@
   <div class="emergency-modal-overlay" @click.self="$emit('close')">
     <div class="emergency-modal">
       <div class="modal-header">
+        <div class="header-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
         <h2>紧急求助中心</h2>
         <button class="close-btn" @click="$emit('close')">
           <i class="fas fa-times"></i>
@@ -179,60 +182,6 @@
                 <i class="fas fa-phone-alt"></i> 拨打
               </a>
             </div>
-
-            <div class="contact-card">
-              <div class="contact-icon-wrapper">
-                <i class="fas fa-hospital-user"></i>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">医疗急救</div>
-                <div class="contact-number">120</div>
-                <div class="contact-description">因诈骗导致身体不适、心理危机或需要紧急医疗救助时拨打</div>
-              </div>
-              <a href="tel:120" class="contact-call">
-                <i class="fas fa-phone-alt"></i> 拨打
-              </a>
-            </div>
-
-            <div class="contact-card">
-              <div class="contact-icon-wrapper">
-                <i class="fas fa-university"></i>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">银行客服</div>
-                <div class="contact-number">955**</div>
-                <div class="contact-description">发现账户异常或已向诈骗分子转账，立即联系银行申请冻结账户</div>
-              </div>
-              <div class="contact-note">各银行客服热线不同，请查询银行卡背面</div>
-            </div>
-
-            <div class="contact-card">
-              <div class="contact-icon-wrapper">
-                <i class="fas fa-balance-scale"></i>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">法律援助热线</div>
-                <div class="contact-number">12348</div>
-                <div class="contact-description">遭受诈骗后需要法律咨询、维权帮助时拨打，提供免费法律服务</div>
-              </div>
-              <a href="tel:12348" class="contact-call">
-                <i class="fas fa-phone-alt"></i> 拨打
-              </a>
-            </div>
-
-            <div class="contact-card">
-              <div class="contact-icon-wrapper">
-                <i class="fas fa-heartbeat"></i>
-              </div>
-              <div class="contact-info">
-                <div class="contact-name">心理援助热线</div>
-                <div class="contact-number">400-161-9995</div>
-                <div class="contact-description">因诈骗遭受心理创伤、焦虑抑郁时寻求专业心理疏导和支持</div>
-              </div>
-              <a href="tel:4001619995" class="contact-call">
-                <i class="fas fa-phone-alt"></i> 拨打
-              </a>
-            </div>
           </div>
         </div>
       </div>
@@ -305,7 +254,7 @@ const removeGuardian = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(53, 86, 138, 0.2);
+  background: rgba(189, 69, 60, 0.15);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -326,7 +275,7 @@ const removeGuardian = () => {
   max-width: 800px;
   max-height: 85vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(53, 86, 138, 0.3);
+  box-shadow: 0 20px 60px rgba(189, 69, 60, 0.25);
   animation: slideUp 0.3s ease;
 }
 
@@ -342,7 +291,7 @@ const removeGuardian = () => {
 }
 
 .modal-header {
-  background: linear-gradient(135deg, #35568A, #2A4670);
+  background: linear-gradient(135deg, #BD453C, #A03A32);
   padding: 24px 28px;
   display: flex;
   justify-content: space-between;
@@ -350,15 +299,32 @@ const removeGuardian = () => {
   border-radius: 24px 24px 0 0;
 }
 
+.header-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+}
+
+.header-icon i {
+  font-size: 24px;
+  color: #DFD1B7;
+}
+
 .modal-header h2 {
   margin: 0;
   font-size: 1.6rem;
   color: #FFFFFF;
   font-weight: 600;
+  flex: 1;
 }
 
 .close-btn {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   border: none;
   color: white;
   font-size: 1.4rem;
@@ -384,7 +350,7 @@ const removeGuardian = () => {
 .section {
   margin-bottom: 28px;
   padding-bottom: 24px;
-  border-bottom: 1px solid #E0E8F2;
+  border-bottom: 1px solid #F5EFE5;
 }
 
 .section:last-child {
@@ -395,7 +361,7 @@ const removeGuardian = () => {
 
 .section-title {
   font-size: 1.2rem;
-  color: #35568A;
+  color: #BD453C;
   margin-bottom: 18px;
   display: flex;
   align-items: center;
@@ -405,14 +371,14 @@ const removeGuardian = () => {
 
 .section-icon {
   font-size: 1.3rem;
-  color: #8B9BC1;
+  color: #DFD1B7;
 }
 
 .section-title .subtitle {
   font-size: 0.8rem;
-  color: #8B9BC1;
+  color: #DFD1B7;
   font-weight: normal;
-  background: #E0E8F2;
+  background: #F5EFE5;
   padding: 2px 8px;
   border-radius: 20px;
 }
@@ -428,8 +394,8 @@ const removeGuardian = () => {
   align-items: flex-start;
   gap: 12px;
   padding: 12px 0;
-  border-bottom: 1px solid #E0E8F2;
-  color: #4A5B6E;
+  border-bottom: 1px solid #F5EFE5;
+  color: #5A6B7A;
   line-height: 1.5;
 }
 
@@ -438,7 +404,7 @@ const removeGuardian = () => {
 }
 
 .action-list .num {
-  background: linear-gradient(135deg, #35568A, #2A4670);
+  background: linear-gradient(135deg, #BD453C, #A03A32);
   color: white;
   width: 26px;
   height: 26px;
@@ -458,7 +424,7 @@ const removeGuardian = () => {
 }
 
 .material-item {
-  background: #F8FAFE;
+  background: #FDFBF8;
   padding: 16px;
   border-radius: 12px;
   display: flex;
@@ -467,28 +433,28 @@ const removeGuardian = () => {
   gap: 10px;
   text-align: center;
   font-size: 0.9rem;
-  color: #4A5B6E;
+  color: #5A6B7A;
   transition: all 0.3s ease;
-  border: 1px solid #E0E8F2;
+  border: 1px solid #F5EFE5;
 }
 
 .material-item:hover {
   transform: translateY(-4px);
-  box-shadow: 0 6px 16px rgba(53, 86, 138, 0.15);
-  border-color: #8B9BC1;
+  box-shadow: 0 6px 16px rgba(189, 69, 60, 0.1);
+  border-color: #DFD1B7;
 }
 
 .material-icon {
   font-size: 2rem;
-  color: #35568A;
+  color: #BD453C;
 }
 
 .guardian-section {
-  background: #F8FAFE;
+  background: #FDFBF8;
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 28px;
-  border-left: 4px solid #35568A;
+  border-left: 4px solid #BD453C;
 }
 
 .guardian-form {
@@ -512,7 +478,7 @@ const removeGuardian = () => {
 .form-group label {
   display: block;
   font-size: 0.9rem;
-  color: #35568A;
+  color: #BD453C;
   margin-bottom: 8px;
   font-weight: 500;
 }
@@ -527,7 +493,7 @@ const removeGuardian = () => {
 .form-group select {
   width: 100%;
   padding: 12px 14px;
-  border: 2px solid #E0E8F2;
+  border: 2px solid #F5EFE5;
   border-radius: 10px;
   font-size: 0.95rem;
   transition: all 0.2s;
@@ -538,8 +504,8 @@ const removeGuardian = () => {
 .input-with-toggle input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #35568A;
-  box-shadow: 0 0 0 3px rgba(53, 86, 138, 0.1);
+  border-color: #DFD1B7;
+  box-shadow: 0 0 0 3px rgba(223, 209, 183, 0.2);
 }
 
 .toggle-visibility {
@@ -547,7 +513,7 @@ const removeGuardian = () => {
   right: 12px;
   background: none;
   border: none;
-  color: #8B9BC1;
+  color: #DFD1B7;
   cursor: pointer;
   padding: 0;
   font-size: 1.1rem;
@@ -555,7 +521,7 @@ const removeGuardian = () => {
 }
 
 .toggle-visibility:hover {
-  color: #35568A;
+  color: #BD453C;
 }
 
 .form-actions {
@@ -580,34 +546,34 @@ const removeGuardian = () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #35568A, #2A4670);
+  background: linear-gradient(135deg, #BD453C, #A03A32);
   color: white;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(53, 86, 138, 0.3);
+  box-shadow: 0 6px 16px rgba(189, 69, 60, 0.3);
 }
 
 .btn-secondary {
-  background: #E0E8F2;
-  color: #35568A;
+  background: #F5EFE5;
+  color: #BD453C;
 }
 
 .btn-secondary:hover {
-  background: #D0DCEB;
+  background: #DFD1B7;
   transform: translateY(-2px);
 }
 
 .saved-info {
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 2px dashed #E0E8F2;
+  border-top: 2px dashed #F5EFE5;
 }
 
 .saved-info h4 {
   font-size: 1rem;
-  color: #35568A;
+  color: #BD453C;
   margin-bottom: 14px;
   display: flex;
   align-items: center;
@@ -622,8 +588,8 @@ const removeGuardian = () => {
   flex-wrap: wrap;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 8px rgba(53, 86, 138, 0.1);
-  border: 1px solid #E0E8F2;
+  box-shadow: 0 2px 8px rgba(189, 69, 60, 0.08);
+  border: 1px solid #F5EFE5;
 }
 
 .guardian-detail {
@@ -632,7 +598,7 @@ const removeGuardian = () => {
 }
 
 .guardian-detail .label {
-  color: #8B9BC1;
+  color: #DFD1B7;
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -646,8 +612,8 @@ const removeGuardian = () => {
   margin-left: auto;
   padding: 8px 16px;
   background: #FFFFFF;
-  border: 1px solid #35568A;
-  color: #35568A;
+  border: 1px solid #BD453C;
+  color: #BD453C;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -658,7 +624,7 @@ const removeGuardian = () => {
 }
 
 .btn-remove:hover {
-  background: #35568A;
+  background: #BD453C;
   color: white;
 }
 
@@ -673,27 +639,27 @@ const removeGuardian = () => {
 }
 
 .contact-card {
-  background: linear-gradient(135deg, #FFFFFF, #F8FAFE);
+  background: linear-gradient(135deg, #FFFFFF, #FDFBF8);
   border-radius: 14px;
   padding: 18px 20px;
   display: flex;
   align-items: center;
   gap: 18px;
   transition: all 0.3s ease;
-  border: 1px solid #E0E8F2;
+  border: 1px solid #F5EFE5;
   position: relative;
 }
 
 .contact-card:hover {
   transform: translateX(4px);
-  box-shadow: 0 6px 16px rgba(53, 86, 138, 0.15);
-  border-color: #8B9BC1;
+  box-shadow: 0 6px 16px rgba(189, 69, 60, 0.1);
+  border-color: #DFD1B7;
 }
 
 .contact-icon-wrapper {
   width: 56px;
   height: 56px;
-  background: #E0E8F2;
+  background: #F5EFE5;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -703,7 +669,7 @@ const removeGuardian = () => {
 
 .contact-icon-wrapper i {
   font-size: 28px;
-  color: #35568A;
+  color: #BD453C;
 }
 
 .contact-info {
@@ -713,26 +679,26 @@ const removeGuardian = () => {
 .contact-name {
   font-size: 1.1rem;
   font-weight: 600;
-  color: #35568A;
+  color: #BD453C;
   margin-bottom: 4px;
 }
 
 .contact-number {
   font-size: 1.3rem;
   font-weight: bold;
-  color: #8B9BC1;
+  color: #DFD1B7;
   margin-bottom: 6px;
   font-family: monospace;
 }
 
 .contact-description {
   font-size: 0.85rem;
-  color: #6B7B8E;
+  color: #7A8A9A;
   line-height: 1.4;
 }
 
 .contact-call {
-  background: #35568A;
+  background: #BD453C;
   color: white;
   text-decoration: none;
   padding: 10px 20px;
@@ -747,15 +713,8 @@ const removeGuardian = () => {
 }
 
 .contact-call:hover {
-  background: #2A4670;
+  background: #A03A32;
   transform: scale(1.05);
-}
-
-.contact-note {
-  font-size: 0.75rem;
-  color: #8B9BC1;
-  margin-top: 4px;
-  font-style: italic;
 }
 
 @media (max-width: 768px) {

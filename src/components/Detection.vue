@@ -103,59 +103,64 @@
                 </div>
               </div>
 
-              <!-- ==================== 文件上传区域 ==================== -->
-              <!-- 功能说明：当选择图片/音频/视频时，显示文件上传区域 -->
-              <!-- 接入说明：
-                   1. accept="*/*" 表示接受所有类型，实际类型限制在 addFiles 方法中实现
-                   2. 如需限制特定文件类型，可修改 accept 属性，如 accept="image/*,audio/*,video/*"
-                   3. 支持拖拽上传和点击上传两种方式
-                   4. 最多支持10个文件，可通过修改 addFiles 中的判断条件调整
-              -->
+              <!-- 文件上传区域（单文件，内嵌预览） -->
               <div v-else class="upload-area" @dragover.prevent @drop.prevent="handleDrop">
                 <input 
                   type="file" 
                   ref="fileInput" 
                   @change="handleFileSelect" 
-                  accept="*/*"
+                  :accept="getAcceptTypes()"
                   class="file-input"
-                  multiple
                 />
-                <div class="upload-content">
+                <div class="upload-content" v-if="!uploadedFile">
                   <i class="fas fa-cloud-upload-alt"></i>
                   <p>点击或拖拽文件到此区域上传</p>
-                  <span class="upload-hint">支持图片、音频、视频文件，最多10个文件</span>
+                  <span class="upload-hint">支持图片、音频、视频文件，单次仅可上传一个文件</span>
                   <button class="select-file-btn" @click="$refs.fileInput.click()">
                     选择文件
                   </button>
                 </div>
-              </div>
-
-              <!-- ==================== 已选文件列表 ==================== -->
-              <!-- 功能说明：显示已上传的文件列表，包含预览功能 -->
-              <!-- 接入说明：
-                   1. uploadedFiles 数组存储已上传的文件信息
-                   2. 每个文件对象包含：name(文件名), size(文件大小), type(文件类型), file(原始File对象), previewUrl(预览URL)
-                   3. 预览功能支持图片、视频、音频，如需支持其他格式可扩展
-              -->
-              <div v-if="selectedFileType !== 'text' && uploadedFiles.length > 0" class="file-list">
-                <div v-for="(file, index) in uploadedFiles" :key="index" class="file-item">
-                  <div class="file-preview">
-                    <!-- 图片预览 -->
-                    <img v-if="file.type === 'image' && file.previewUrl" :src="file.previewUrl" class="preview-image" alt="预览">
-                    <!-- 视频预览 -->
-                    <video v-else-if="file.type === 'video' && file.previewUrl" :src="file.previewUrl" class="preview-video" controls></video>
-                    <!-- 音频预览 -->
-                    <audio v-else-if="file.type === 'audio' && file.previewUrl" :src="file.previewUrl" class="preview-audio" controls></audio>
-                    <!-- 默认图标 -->
-                    <i v-else :class="getFileIcon(file.type)" class="file-icon-large"></i>
+                
+                <!-- 内嵌文件预览区域（图片/视频/音频） -->
+                <div v-if="uploadedFile" class="inline-preview-area">
+                  <!-- 图片预览 -->
+                  <div v-if="uploadedFile.type === 'image'" class="preview-image-container">
+                    <img :src="uploadedFile.previewUrl" class="preview-image-full" alt="预览">
+                    <button class="remove-file-btn" @click="removeFile">
+                      <i class="fas fa-times-circle"></i>
+                    </button>
                   </div>
-                  <div class="file-info">
-                    <span class="file-name">{{ file.name }}</span>
-                    <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <!-- 视频预览 -->
+                  <div v-else-if="uploadedFile.type === 'video'" class="preview-video-container">
+                    <video 
+                      :src="uploadedFile.previewUrl" 
+                      class="preview-video-full" 
+                      controls
+                      controlslist="nodownload"
+                    >
+                      您的浏览器不支持视频播放。
+                    </video>
+                    <button class="remove-file-btn" @click="removeFile">
+                      <i class="fas fa-times-circle"></i>
+                    </button>
                   </div>
-                  <button class="remove-file" @click="removeFile(index)">
-                    <i class="fas fa-times"></i>
-                  </button>
+                  <!-- 音频预览 -->
+                  <div v-else-if="uploadedFile.type === 'audio'" class="preview-audio-container">
+                    <div class="audio-info">
+                      <i class="fas fa-music"></i>
+                      <span>{{ uploadedFile.name }}</span>
+                    </div>
+                    <audio 
+                      :src="uploadedFile.previewUrl" 
+                      class="preview-audio-full" 
+                      controls
+                    >
+                      您的浏览器不支持音频播放。
+                    </audio>
+                    <button class="remove-file-btn" @click="removeFile">
+                      <i class="fas fa-times-circle"></i>
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -223,34 +228,34 @@
                 </div>
                 <h4>开始您的第一次检测</h4>
                 
-                <!-- 功能特点展示 -->
-                <div class="feature-description-result">
-                  <div class="feature-item">
-                    <span class="feature-dot"></span>
-                    <div class="feature-text">
+                <!-- 简化后的功能特点展示 -->
+                <div class="feature-description-result-compact">
+                  <div class="feature-item-compact">
+                    <i class="fas fa-shapes"></i>
+                    <div class="feature-text-compact">
                       <strong>多模态识别</strong>
-                      <span>支持文本、图像、音频、视频文件，跨模态交叉验证</span>
+                      <span>文本/图像/音频/视频</span>
                     </div>
                   </div>
-                  <div class="feature-item">
-                    <span class="feature-dot"></span>
-                    <div class="feature-text">
+                  <div class="feature-item-compact">
+                    <i class="fas fa-mask"></i>
+                    <div class="feature-text-compact">
                       <strong>深度伪造检测</strong>
-                      <span>AI换脸、语音合成识别，GAN生成内容检测</span>
+                      <span>换脸/语音合成识别</span>
                     </div>
                   </div>
-                  <div class="feature-item">
-                    <span class="feature-dot"></span>
-                    <div class="feature-text">
-                      <strong>数据分析</strong>
-                      <span>生成详细检测报告，包含模型解释性文本，分析伪造痕迹</span>
+                  <div class="feature-item-compact">
+                    <i class="fas fa-chart-line"></i>
+                    <div class="feature-text-compact">
+                      <strong>详细分析报告</strong>
+                      <span>包含伪造痕迹分析</span>
                     </div>
                   </div>
-                  <div class="feature-item">
-                    <span class="feature-dot"></span>
-                    <div class="feature-text">
+                  <div class="feature-item-compact">
+                    <i class="fas fa-file-pdf"></i>
+                    <div class="feature-text-compact">
                       <strong>结果导出</strong>
-                      <span>支持PDF报告导出、JSON数据导出、结果分享</span>
+                      <span>支持PDF/JSON格式</span>
                     </div>
                   </div>
                 </div>
@@ -1071,7 +1076,8 @@ export default {
       selectedFileType: 'image',
       imageSubtype: 'face',
       selectedModel: 'standard',
-      uploadedFiles: [],
+      // TODO: 这里需要修改
+      uploadedFile: null,
       textContent: '',
       
       // 检测状态
@@ -1218,7 +1224,8 @@ export default {
       if (this.selectedFileType === 'text') {
         return this.textContent.trim().length > 0;
       }
-      return this.uploadedFiles.length > 0;
+      // TODO: 这里需要修改
+      return this.uploadedFile !== null;  // 改为判断单文件
     },
     
     filteredRecords() {
@@ -1311,11 +1318,9 @@ export default {
       clearInterval(this.detectTimer);
     }
     // 清理预览URL
-    this.uploadedFiles.forEach(file => {
-      if (file.previewUrl) {
-        URL.revokeObjectURL(file.previewUrl);
-      }
-    });
+    
+    // TODO: 这里需要修改
+    if (this.uploadedFile?.previewUrl) URL.revokeObjectURL(this.uploadedFile.previewUrl);
   },
   
   methods: {
@@ -1757,45 +1762,37 @@ export default {
     },
     
     // ==================== 文件上传相关 ====================
+    // TODO: 这里需要修改
     handleDrop(e) {
       if (this.selectedFileType === 'text') return;
       const files = Array.from(e.dataTransfer.files);
-      this.addFiles(files);
+      if (files.length > 0) this.addFile(files[0]);  // 只取第一个文件
     },
     
     handleFileSelect(e) {
       if (this.selectedFileType === 'text') return;
       const files = Array.from(e.target.files);
-      this.addFiles(files);
+      if (files.length > 0) this.addFile(files[0]);
       e.target.value = '';
     },
     
-    addFiles(files) {
-      if (this.uploadedFiles.length + files.length > 10) {
-        alert('最多只能上传10个文件');
-        return;
+    // 替换原来的 addFiles 方法
+    addFile(file) {
+      const fileType = this.getFileTypeFromMime(file.type);
+      if (fileType && fileType === this.selectedFileType) {
+        // 清除已有文件预览URL
+        if (this.uploadedFile?.previewUrl) URL.revokeObjectURL(this.uploadedFile.previewUrl);
+        const previewUrl = URL.createObjectURL(file);
+        this.uploadedFile = {
+          name: file.name,
+          size: file.size,
+          type: fileType,
+          file: file,
+          previewUrl: previewUrl
+        };
+      } else {
+        alert(`文件类型不匹配，请上传${this.getFileTypeName(this.selectedFileType)}文件`);
       }
-      
-      files.forEach(file => {
-        const fileType = this.getFileTypeFromMime(file.type);
-        if (fileType && fileType === this.selectedFileType) {
-          // 生成预览URL
-          let previewUrl = null;
-          if (fileType === 'image' || fileType === 'video' || fileType === 'audio') {
-            previewUrl = URL.createObjectURL(file);
-          }
-          
-          this.uploadedFiles.push({
-            name: file.name,
-            size: file.size,
-            type: fileType,
-            file: file,
-            previewUrl: previewUrl
-          });
-        } else {
-          alert(`文件类型不匹配，请上传${this.getFileTypeName(this.selectedFileType)}文件`);
-        }
-      });
     },
     
     getFileTypeFromMime(mime) {
@@ -1829,22 +1826,17 @@ export default {
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     },
     
-    removeFile(index) {
-      // 释放预览URL
-      if (this.uploadedFiles[index].previewUrl) {
-        URL.revokeObjectURL(this.uploadedFiles[index].previewUrl);
-      }
-      this.uploadedFiles.splice(index, 1);
+    // TODO: 这里需要修改
+    // 将原来的 removeFile(index) 改为：
+    removeFile() {
+      if (this.uploadedFile?.previewUrl) URL.revokeObjectURL(this.uploadedFile.previewUrl);
+      this.uploadedFile = null;
     },
     
+    // TODO: 这里需要修改
+    // 修改 clearAll 方法：
     clearAll() {
-      // 释放所有预览URL
-      this.uploadedFiles.forEach(file => {
-        if (file.previewUrl) {
-          URL.revokeObjectURL(file.previewUrl);
-        }
-      });
-      this.uploadedFiles = [];
+      this.removeFile();      // 改为调用新的 removeFile
       this.textContent = '';
       this.hasResult = false;
       this.currentResult = null;
@@ -1876,7 +1868,8 @@ export default {
     
     mockDetectionResult() {
       const isText = this.selectedFileType === 'text';
-      const file = this.uploadedFiles[0];
+      // TODO: 这里需要修改
+      const file = this.uploadedFile;
       const isFace = this.selectedFileType === 'image' && this.imageSubtype === 'face';
       
       if (isText) {
@@ -2308,6 +2301,14 @@ export default {
     // ==================== FAQ相关 ====================
     toggleFaq(index) {
       this.activeFaq = this.activeFaq === index ? null : index;
+    },
+    // 在 methods 中添加此方法
+    // TODO: 这里需要修改
+    getAcceptTypes() {
+      if (this.selectedFileType === 'image') return 'image/*';
+      if (this.selectedFileType === 'audio') return 'audio/*';
+      if (this.selectedFileType === 'video') return 'video/*';
+      return '*/*';
     }
   }
 };
@@ -2315,38 +2316,6 @@ export default {
 
 <style scoped>
 /* ==================== 原有样式保持不变 ==================== */
-
-/* 检测中心 - 结果头部样式调整 */
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.result-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* 日期标签样式 - 适配放在结果区域 */
-.result-header .date-badge {
-  background: #f8fafc;
-  padding: 6px 14px;
-  border-radius: 30px;
-  font-size: 13px;
-  color: #64748b;
-  border: 1px solid #edf2f7;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.result-header .date-badge i {
-  color: #94a3b8;
-  font-size: 12px;
-}
 
 /* 检测记录 - 筛选区域头部样式 */
 .filter-header {
@@ -2436,85 +2405,6 @@ export default {
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   border: 1px solid #edf2f7;
   height: fit-content;
-}
-
-/* 文件预览样式 */
-.file-preview {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-right: 12px;
-  flex-shrink: 0;
-  background: #f1f5f9;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preview-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.preview-audio {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.file-icon-large {
-  font-size: 30px;
-  color: #94a3b8;
-}
-
-.file-item {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: #f8fafc;
-  border-radius: 10px;
-  margin-bottom: 8px;
-}
-
-.file-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.file-name {
-  font-size: 14px;
-  color: #1e293b;
-  font-weight: 500;
-}
-
-.file-size {
-  font-size: 12px;
-  color: #94a3b8;
-}
-
-.remove-file {
-  background: none;
-  border: none;
-  color: #94a3b8;
-  cursor: pointer;
-  padding: 8px;
-  border-radius: 50%;
-  transition: all 0.2s;
-}
-
-.remove-file:hover {
-  background: #fee2e2;
-  color: #ef4444;
 }
 
 /* 文本输入区域样式 */
@@ -2620,63 +2510,6 @@ export default {
 }
 
 /* ==================== 优化后的功能特点样式 ==================== */
-
-.feature-description-result {
-  background: #f8fafc;
-  border-radius: 16px;
-  padding: 24px;
-  margin: 24px 0;
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-}
-
-.feature-description-result .feature-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: 0; /* 防止内容溢出 */
-}
-
-.feature-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  background-color: #3b7cff;
-  border-radius: 50%;
-  margin-top: 8px;
-  flex-shrink: 0;
-}
-
-.feature-text {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.feature-text strong {
-  font-size: 15px;
-  color: #1e293b;
-  margin-bottom: 4px;
-  line-height: 1.4;
-}
-
-.feature-text span {
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.5;
-}
-
-/* 确保四个版块严格对齐 */
-@media (min-width: 768px) {
-  .feature-description-result {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .feature-item {
-    min-height: 70px;
-  }
-}
 
 /* 准确度标签样式 - 恢复原来的样子 */
 .accuracy-tag {
@@ -3196,13 +3029,6 @@ export default {
 .select-file-btn:hover {
   background: #3b7cff;
   color: white;
-}
-
-/* 文件列表 */
-.file-list {
-  margin-bottom: 24px;
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 /* 操作按钮 */
@@ -4800,4 +4626,99 @@ export default {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* 内嵌预览样式 */
+.inline-preview-area {
+  position: relative;
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+.preview-image-container, .preview-video-container, .preview-audio-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 12px;
+  overflow: hidden;
+}
+.preview-image-full {
+  max-width: 100%;
+  max-height: 300px;
+  object-fit: contain;
+}
+.preview-video-full {
+  width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+}
+.preview-audio-container {
+  flex-direction: column;
+  padding: 20px;
+  background: #f8fafc;
+}
+.audio-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #1e293b;
+}
+.audio-info i { font-size: 24px; color: #3b7cff; }
+.preview-audio-full { width: 100%; }
+.remove-file-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.6);
+  border: none;
+  color: white;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+.remove-file-btn:hover { background: #ef4444; transform: scale(1.05); }
+.remove-file-btn i { font-size: 20px; }
+
+/* 简化版功能特点展示 */
+.feature-description-result-compact {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 20px 0;
+  padding: 0 8px;
+}
+.feature-item-compact {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+.feature-item-compact i {
+  font-size: 24px;
+  color: #3b7cff;
+}
+.feature-text-compact {
+  display: flex;
+  flex-direction: column;
+}
+.feature-text-compact strong {
+  font-size: 14px;
+  color: #1e293b;
+}
+.feature-text-compact span {
+  font-size: 12px;
+  color: #64748b;
+}
+
 </style>

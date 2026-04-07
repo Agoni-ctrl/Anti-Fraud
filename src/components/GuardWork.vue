@@ -13,7 +13,7 @@
                 :class="{ active: currentVideoIndex === index && !showQuiz && !showCheckTool }"
                 @click="selectVideo(index)"
               >
-                <span class="nav-icon">🎬</span>
+                <span class="nav-icon"><font-awesome-icon icon="video" /></span>
                 <span class="nav-text">{{ video.title }}</span>
               </li>
             </ul>
@@ -27,7 +27,7 @@
                 :class="{ active: showCheckTool }"
                 @click="startCheckTool"
               >
-                <span class="nav-icon">🔍</span>
+                <span class="nav-icon"><font-awesome-icon icon="search" /></span>
                 <span class="nav-text">公司风险自查</span>
               </li>
             </ul>
@@ -41,17 +41,13 @@
                 :class="{ active: showQuiz }"
                 @click="startQuiz"
               >
-                <span class="nav-icon">🎯</span>
+                <span class="nav-icon"><font-awesome-icon icon="bullseye" /></span>
                 <span class="nav-text">开始测试</span>
               </li>
             </ul>
           </div>
           
-          <div class="nav-section">
-            <div class="sidebar-image">
-              <img src="../assets/images/peoples/职场防诈.webp" alt="职场防诈" class="sidebar-img">
-            </div>
-          </div>
+
         </nav>
       </aside>
 
@@ -89,14 +85,14 @@
                 @keyup.enter="checkCompany"
               />
               <button @click="checkCompany" class="check-btn">
-                <span class="btn-icon">🔍</span>
+                <span class="btn-icon"><font-awesome-icon icon="search" /></span>
                 <span>立即自查</span>
               </button>
             </div>
             
             <div v-if="checkResult" class="result-card" :class="checkResult.riskLevel">
               <div class="result-header">
-                <span class="result-icon">{{ checkResult.icon }}</span>
+                <span class="result-icon" v-html="checkResult.icon"></span>
                 <span class="result-title">{{ checkResult.title }}</span>
               </div>
               <p class="result-description">{{ checkResult.description }}</p>
@@ -257,7 +253,7 @@ const checkCompany = () => {
   if (name.includes('刷单') || name.includes('兼职') || name.includes('返利')) {
     checkResult.value = {
       riskLevel: 'high',
-      icon: '⚠️',
+      icon: '<font-awesome-icon icon="triangle-exclamation" />',
       title: '高风险公司',
       description: '该公司名称包含刷单、兼职、返利等关键词，极有可能是诈骗公司。',
       risks: [
@@ -276,7 +272,7 @@ const checkCompany = () => {
   } else if (name.includes('培训') && name.includes('贷')) {
     checkResult.value = {
       riskLevel: 'high',
-      icon: '⚠️',
+      icon: '<font-awesome-icon icon="triangle-exclamation" />',
       title: '高风险公司',
       description: '该公司名称包含培训贷，极有可能是诈骗公司。',
       risks: [
@@ -295,7 +291,7 @@ const checkCompany = () => {
   } else if (name.includes('投资') || name.includes('理财')) {
     checkResult.value = {
       riskLevel: 'medium',
-      icon: '⚠️',
+      icon: '<font-awesome-icon icon="triangle-exclamation" />',
       title: '中风险公司',
       description: '该公司涉及投资理财业务，请谨慎对待。',
       risks: [
@@ -314,7 +310,7 @@ const checkCompany = () => {
   } else {
     checkResult.value = {
       riskLevel: 'low',
-      icon: '💡',
+      icon: '<font-awesome-icon icon="lightbulb" />',
       title: '暂未发现明显风险',
       description: '根据公司名称初步判断，暂未发现明显的诈骗风险特征。但仍建议您谨慎核实。',
       risks: [],
@@ -459,6 +455,8 @@ const checkCompany = () => {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(93, 176, 223, 0.15);
+  max-width: 80%;
+  margin: 0 auto;
 }
 
 /* 侧边栏图�?*/

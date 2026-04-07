@@ -45,7 +45,7 @@
                 :class="{ active: currentVideoIndex === index && !showQuiz }"
                 @click="selectVideo(index)"
               >
-                <span class="nav-icon">🎬</span>
+                <span class="nav-icon"><font-awesome-icon icon="video" /></span>
                 <span class="nav-text">{{ video.title }}</span>
               </li>
             </ul>
@@ -59,7 +59,7 @@
                 :class="{ active: showQuiz }"
                 @click="startQuiz"
               >
-                <span class="nav-icon">🎯</span>
+                <span class="nav-icon"><font-awesome-icon icon="bullseye" /></span>
                 <span class="nav-text">开始测试</span>
               </li>
             </ul>
@@ -67,7 +67,7 @@
           
           <div class="nav-section">
             <button class="back-btn" @click="backToSelection">
-              <span class="back-icon">🔙</span>
+              <span class="back-icon"><font-awesome-icon icon="arrow-left" /></span>
               <span>返回选择</span>
             </button>
           </div>
@@ -562,6 +562,8 @@ const startQuiz = () => {
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(33, 150, 243, 0.15);
+  max-width: 80%;
+  margin: 0 auto;
 }
 
 .quiz-section {
