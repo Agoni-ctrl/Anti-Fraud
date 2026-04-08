@@ -6,14 +6,19 @@
         class="video-element"
         :src="videoUrl"
         @click.stop
+        @play="isPlaying = true"
+        @pause="isPlaying = false"
         @timeupdate="updateProgress"
         @loadedmetadata="onVideoLoaded"
         @error="onVideoError"
         @waiting="onWaiting"
         @canplay="onCanPlay"
+        playsinline
+        webkit-playsinline
       ></video>
       
-      <div v-if="!isPlaying && !isLoading" class="play-overlay">
+      <!-- 只在非播放状态且不加载时显示覆盖层 -->
+      <div v-if="!isPlaying && !isLoading && !hasError && videoRef && videoRef.currentTime === 0" class="play-overlay">
         <div class="play-button">
           <svg viewBox="0 0 24 24" fill="white" width="60" height="60">
             <path d="M8 5v14l11-7z"/>
@@ -111,6 +116,7 @@ const isLoading = ref(false)
 const hasError = ref(false)
 const errorMessage = ref('')
 
+// 监听视频源变化
 watch(() => props.videoUrl, () => {
   hasError.value = false
   errorMessage.value = ''
@@ -129,7 +135,9 @@ const togglePlay = () => {
     } else {
       const playPromise = videoRef.value.play()
       if (playPromise !== undefined) {
-        playPromise.catch(error => {
+        playPromise.then(() => {
+          isPlaying.value = true
+        }).catch(error => {
           console.error('播放失败:', error)
           errorMessage.value = '播放失败: ' + error.message
           hasError.value = true
@@ -156,15 +164,17 @@ const changeVolume = () => {
 const updateProgress = () => {
   if (videoRef.value) {
     currentTime.value = videoRef.value.currentTime
-    progress.value = (currentTime.value / duration.value) * 100
+    if (duration.value > 0) {
+      progress.value = (currentTime.value / duration.value) * 100
+    }
   }
 }
 
 const seekVideo = (event) => {
-  if (videoRef.value) {
+  if (videoRef.value && duration.value > 0) {
     const rect = event.currentTarget.getBoundingClientRect()
     const x = event.clientX - rect.left
-    const percentage = x / rect.width
+    const percentage = Math.min(Math.max(x / rect.width, 0), 1)
     videoRef.value.currentTime = percentage * duration.value
   }
 }
@@ -203,18 +213,20 @@ const retryLoad = () => {
       console.error('重试播放失败:', error)
       errorMessage.value = '播放失败: ' + error.message
       hasError.value = true
+      isLoading.value = false
     })
   }
 }
 
 const toggleFullscreen = () => {
-  if (videoRef.value) {
-    if (videoRef.value.requestFullscreen) {
-      videoRef.value.requestFullscreen()
-    } else if (videoRef.value.webkitRequestFullscreen) {
-      videoRef.value.webkitRequestFullscreen()
-    } else if (videoRef.value.mozRequestFullScreen) {
-      videoRef.value.mozRequestFullScreen()
+  const container = document.querySelector('.video-player-container')
+  if (container) {
+    if (container.requestFullscreen) {
+      container.requestFullscreen()
+    } else if (container.webkitRequestFullscreen) {
+      container.webkitRequestFullscreen()
+    } else if (container.mozRequestFullScreen) {
+      container.mozRequestFullScreen()
     }
   }
 }
@@ -253,6 +265,7 @@ onBeforeUnmount(() => {
   width: 100%;
   padding-top: 56.25%;
   background: #000;
+  cursor: pointer;
 }
 
 .video-element {
@@ -262,6 +275,7 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   object-fit: contain;
+  background: #000;
 }
 
 .play-overlay {
@@ -273,28 +287,36 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.3);
-  cursor: pointer;
+  background: rgba(0, 0, 0, 0.2);
   transition: background 0.3s ease;
-}
-
-.play-overlay:hover {
-  background: rgba(0, 0, 0, 0.4);
+  pointer-events: none;
 }
 
 .play-button {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.9);
+  width: 90px;
+  height: 90px;
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(8px);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.2s ease;
+  transition: all 0.2s ease;
+  pointer-events: auto;
+  cursor: pointer;
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }
 
-.play-overlay:hover .play-button {
+.play-button svg {
+  width: 48px;
+  height: 48px;
+  margin-left: 6px;
+}
+
+.video-wrapper:hover .play-button {
   transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.35);
+  border-color: rgba(255, 255, 255, 0.9);
 }
 
 .loading-overlay {
@@ -334,6 +356,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.8);
+  z-index: 10;
 }
 
 .error-content {
@@ -410,13 +433,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
+  padding: 8px;
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
 .control-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .control-btn:disabled {
@@ -430,7 +453,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   gap: 5px;
-  margin-left: 10px;
+  font-family: monospace;
 }
 
 .volume-control {
