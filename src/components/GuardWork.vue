@@ -176,7 +176,7 @@ const videos = [
   },
   {
     title: '企业财会人员防诈',
-    url: '/videos/workplace/caikui.mp4',
+    url: '/videos/workplace/caihui.mp4',
     knowledge: '企业财会人员是诈骗分子的重点目标。常见诈骗手段包括：冒充公司领导要求紧急转账、伪造供应商变更收款账户、虚假发票诈骗等。财会人员务必严格执行财务制度，大额转账必须当面或电话核实，不轻信邮件、微信等渠道的转账指令。'
   }
 ]
