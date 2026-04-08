@@ -48,18 +48,22 @@ const routes = [
     name: 'WorkGuard',
     component: () => import('../components/GuardWork.vue')
   },
-  // 紧急求助弹窗页面路由
-  // {
-  //   path: '/emergency',
-  //   name: 'Emergency',
-  //   component: () => import('../components/EmergencyModal.vue')
-  // },
-  // 登录/注册页面路由（预留）
-  // {
-  //   path: '/auth',
-  //   name: 'Auth',
-  //   component: () => import('../components/Auth.vue')  // 预留，之后创建此组件
-  // }
+  // 用户认证相关路由
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../components/user/login.vue')
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../components/user/register.vue')
+  },
+  {
+    path: '/identity',
+    name: 'Identity',
+    component: () => import('../components/user/identity.vue')
+  }
 ]
 
 const router = createRouter({

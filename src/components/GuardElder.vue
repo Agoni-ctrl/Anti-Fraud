@@ -4,7 +4,9 @@
       <aside class="sidebar">
         <nav class="sidebar-nav">
           <div class="nav-section">
-            <h4 class="nav-section-title">视频学习</h4>
+            <h4 class="nav-section-title">
+              <i class="fas fa-video"></i> 视频学习
+            </h4>
             <ul class="nav-list">
               <li
                 v-for="(video, index) in videos"
@@ -13,30 +15,26 @@
                 :class="{ active: currentVideoIndex === index && !showQuiz }"
                 @click="selectVideo(index)"
               >
-                <span class="nav-icon">🎬</span>
+                <i class="fas fa-play-circle"></i>
                 <span class="nav-text">{{ video.title }}</span>
               </li>
             </ul>
           </div>
 
           <div class="nav-section">
-            <h4 class="nav-section-title">防骗小测试</h4>
+            <h4 class="nav-section-title">
+              <i class="fas fa-tasks"></i> 防骗小测试
+            </h4>
             <ul class="nav-list">
               <li
                 class="nav-item"
                 :class="{ active: showQuiz }"
                 @click="startQuiz"
               >
-                <span class="nav-icon">🎯</span>
+                <i class="fas fa-bullseye"></i>
                 <span class="nav-text">开始测试</span>
               </li>
             </ul>
-          </div>
-          
-          <div class="nav-section">
-            <div class="sidebar-image">
-              <img src="../assets/images/peoples/守护老人.jpg" alt="守护老人" class="sidebar-img">
-            </div>
           </div>
         </nav>
       </aside>
@@ -45,9 +43,10 @@
         <div v-if="!showQuiz">
           <div class="content-header">
             <h1 class="page-title">
+              <i class="fas fa-graduation-cap"></i>
               {{ currentVideo.title }}
               <button class="speak-btn" @click="speakText(currentVideo.title)" title="朗读标题">
-                🔊
+                <i class="fas fa-volume-up"></i>
               </button>
             </h1>
           </div>
@@ -58,10 +57,7 @@
           
           <div class="knowledge-section">
             <h3 class="knowledge-title">
-              知识点
-              <button class="speak-btn" @click="speakText('知识点')" title="朗读">
-                🔊
-              </button>
+              <i class="fas fa-lightbulb"></i> 知识点
             </h3>
             <div class="knowledge-content">
               <div 
@@ -69,9 +65,10 @@
                 :key="index" 
                 class="sentence-item"
               >
+                <i class="fas fa-check-circle"></i>
                 <span class="sentence-text">{{ sentence }}</span>
                 <button class="speak-btn" @click="speakText(sentence)" title="朗读这段话">
-                  🔊
+                  <i class="fas fa-volume-up"></i>
                 </button>
               </div>
             </div>
@@ -270,11 +267,20 @@ onUnmounted(() => {
 }
 
 .nav-section-title {
-  font-size: 16px;
+  font-size: 24px;
   color: #0064b2;
-  font-weight: 600;
-  margin-bottom: 16px;
-  padding-left: 8px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  padding: 12px 8px;
+  background: linear-gradient(135deg, #e6f3ff, #f0f9ff);
+  border-radius: 12px;
+  letter-spacing: 2px;
+}
+
+.nav-section-title i {
+  margin-right: 12px;
+  font-size: 22px;
+  color: #0099ff;
 }
 
 .nav-list {
@@ -287,20 +293,30 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 18px;
+  padding: 14px 18px;
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
   margin-bottom: 10px;
   color: #1a3a5a;
-  font-size: 18px;
+  font-size: 17px;
   background: #f8fbfe;
   border: 1px solid #e0f2fe;
 }
 
+.nav-item i {
+  width: 22px;
+  font-size: 18px;
+  flex-shrink: 0;
+  color: #0099ff;
+}
+
+.nav-item.active i {
+  color: #fff;
+}
+
 .nav-item:hover {
   background: #e0f2fe;
-  transform: translateX(4px);
 }
 
 .nav-item.active {
@@ -308,11 +324,6 @@ onUnmounted(() => {
   color: #fff;
   font-weight: 500;
   box-shadow: 0 4px 12px rgba(0, 100, 178, 0.25);
-}
-
-.nav-icon {
-  font-size: 22px;
-  flex-shrink: 0;
 }
 
 .nav-text {
@@ -339,38 +350,58 @@ onUnmounted(() => {
   gap: 16px;
 }
 
+.page-title i {
+  font-size: 30px;
+  color: #0099ff;
+}
+
+.video-section {
+  margin-bottom: 48px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 100, 178, 0.12);
+  max-width: 80%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .knowledge-section {
   background: linear-gradient(135deg, #f8fbfe, #f0f9ff);
   border-radius: 16px;
-  padding: 24px 28px;
-  margin-bottom: 32px;
+  padding: 28px 32px;
+  margin-top: 16px;
   border: 1px solid #e0f2fe;
   border-left: 4px solid #0064b2;
 }
 
 .knowledge-title {
-  font-size: 22px;
+  font-size: 24px;
   color: #0064b2;
-  margin-bottom: 20px;
-  font-weight: 600;
+  margin-bottom: 24px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
+.knowledge-title i {
+  font-size: 26px;
+  color: #ffc107;
+}
+
 .knowledge-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .sentence-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 18px;
   background: #fff;
-  border-radius: 10px;
+  border-radius: 12px;
   border: 1px solid #e0f2fe;
   transition: all 0.2s ease;
 }
@@ -380,20 +411,26 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 100, 178, 0.08);
 }
 
+.sentence-item i {
+  font-size: 20px;
+  color: #28a745;
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
 .sentence-text {
   flex: 1;
   color: #2a4a6a;
-  line-height: 1.8;
-  font-size: 18px;
+  line-height: 1.7;
+  font-size: 17px;
 }
 
 .speak-btn {
   background: linear-gradient(135deg, #0064b2, #0099ff);
   border: none;
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -404,36 +441,19 @@ onUnmounted(() => {
   box-shadow: 0 2px 8px rgba(0, 100, 178, 0.25);
 }
 
+.speak-btn i {
+  font-size: 18px;
+  color: #fff;
+}
+
 .speak-btn:hover {
   background: linear-gradient(135deg, #0055a0, #0088ee);
-  transform: scale(1.1);
+  transform: scale(1.08);
   box-shadow: 0 4px 12px rgba(0, 100, 178, 0.35);
 }
 
 .speak-btn:active {
-  transform: scale(0.95);
-}
-
-.video-section {
-  margin-bottom: 24px;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 100, 178, 0.12);
-}
-
-/* 侧边栏图�?*/
-.sidebar-image {
-  padding: 16px;
-  text-align: center;
-}
-
-.sidebar-img {
-  width: 100%;
-  max-width: 200px;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 100, 178, 0.1);
-  background: none;
+  transform: scale(0.96);
 }
 
 .quiz-section {
@@ -460,21 +480,57 @@ onUnmounted(() => {
   .page-title {
     font-size: 24px;
   }
+  
+  .page-title i {
+    font-size: 26px;
+  }
+  
+  .video-section {
+    margin-bottom: 40px;
+  }
+  
+  .knowledge-section {
+    padding: 24px 28px;
+  }
+  
+  .knowledge-title {
+    font-size: 22px;
+  }
+  
+  .knowledge-title i {
+    font-size: 24px;
+  }
 
   .sentence-text {
     font-size: 16px;
   }
+  
+  .sentence-item i {
+    font-size: 18px;
+  }
 
   .speak-btn {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
+    width: 38px;
+    height: 38px;
+  }
+  
+  .speak-btn i {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 768px) {
   .sidebar-nav {
     padding: 16px 12px;
+  }
+  
+  .nav-section-title {
+    font-size: 20px;
+    padding: 10px 8px;
+  }
+  
+  .nav-section-title i {
+    font-size: 18px;
   }
 
   .main-content {
@@ -486,18 +542,36 @@ onUnmounted(() => {
     flex-direction: column;
     align-items: flex-start;
   }
+  
+  .page-title i {
+    font-size: 24px;
+  }
+  
+  .video-section {
+    margin-bottom: 36px;
+  }
 
   .knowledge-section {
     padding: 20px 18px;
+    margin-top: 12px;
   }
 
   .knowledge-title {
     font-size: 20px;
   }
+  
+  .knowledge-title i {
+    font-size: 22px;
+  }
 
   .sentence-item {
     flex-direction: column;
     align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .sentence-item i {
+    margin-top: 0;
   }
 
   .speak-btn {

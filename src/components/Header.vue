@@ -3,9 +3,8 @@
     <div class="navbar-container">
       <!-- 左侧：Logo 和 主导航菜单 -->
       <div class="navbar-left">
-        <!-- 网站Logo - 使用router-link跳转到首页 -->
+        <!-- 网站Logo -->
         <router-link to="/" class="logo">
-          <!-- Logo图标部分 -->
           <div class="logo-icon-wrapper">
             <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
               <circle cx="18" cy="18" r="14" stroke="#4aa3ff" stroke-width="1.5" fill="none"/>
@@ -23,31 +22,24 @@
 
         <!-- 主导航菜单 -->
         <ul class="nav-menu">
-          <!-- 首页 -->
           <li class="nav-item">
             <router-link to="/" class="nav-link" :class="{ active: $route.path === '/' }">
               <i class="fas fa-home nav-icon"></i>
               <span>首页</span>
             </router-link>
           </li>
-
-          <!-- AI真伪识别 -->
           <li class="nav-item">
             <router-link to="/detection" class="nav-link" :class="{ active: $route.path === '/detection' }">
               <i class="fa-solid fa-magnifying-glass nav-icon"></i>
               <span>AI真伪识别</span>
             </router-link>
           </li>
-
-          <!-- AI反诈助手 - 使用 clipboard-question 图标 -->
           <li class="nav-item">
             <router-link to="/ai-assistant" class="nav-link" :class="{ active: $route.path === '/ai-assistant' }">
               <i class="fas fa-robot nav-icon"></i>
               <span>AI反诈助手</span>
             </router-link>
           </li>
-
-          <!-- 人群守护 (下拉菜单) -->
           <li class="nav-item dropdown" @mouseenter="openDropdown('people')" @mouseleave="closeDropdown('people')">
             <a href="#" class="nav-link" @click.prevent>
               <i class="fas fa-users nav-icon"></i>
@@ -69,16 +61,12 @@
               </router-link>
             </div>
           </li>
-
-          <!-- 最新动态 -->
           <li class="nav-item">
             <router-link to="/news" class="nav-link" :class="{ active: $route.path === '/news' }">
               <i class="fas fa-newspaper nav-icon"></i>
               <span>最新动态</span>
             </router-link>
           </li>
-
-          <!-- 关于我们 -->
           <li class="nav-item">
             <router-link to="/about" class="nav-link" :class="{ active: $route.path === '/about' }">
               <i class="fas fa-user nav-icon"></i>
@@ -88,7 +76,7 @@
         </ul>
       </div>
 
-      <!-- 右上角：紧急求助 + 登录/注册合并按钮 -->
+      <!-- 右上角：紧急求助 + 用户区域 -->
       <div class="navbar-right">
         <button class="emergency-btn" @click="handleEmergency">
           <i class="fas fa-exclamation-triangle btn-icon"></i>
@@ -96,38 +84,113 @@
           <span class="emergency-pulse"></span>
         </button>
 
-        <button class="auth-btn login-register" @click="goToAuth">
+        <!-- 已登录状态：显示用户下拉菜单 -->
+        <div v-if="isLoggedIn" class="user-menu-dropdown" @mouseenter="openDropdown('user')" @mouseleave="closeDropdown('user')">
+          <button class="user-btn">
+            <i class="fas fa-user-circle btn-icon"></i>
+            <span>{{ userNickname || '用户' }}</span>
+            <i class="fas fa-chevron-down dropdown-arrow" :class="{ rotated: activeDropdown === 'user' }"></i>
+          </button>
+          <div class="dropdown-menu user-dropdown" v-show="activeDropdown === 'user'">
+            <router-link to="/identity" class="dropdown-item" @click="closeDropdown('user')">
+              <i class="fas fa-id-card dropdown-item-icon"></i>
+              身份管理
+            </router-link>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="dropdown-item logout-item" @click.prevent="handleLogout">
+              <i class="fas fa-sign-out-alt dropdown-item-icon"></i>
+              退出登录
+            </a>
+          </div>
+        </div>
+
+        <!-- 未登录状态：显示登录按钮 -->
+        <button v-else class="auth-btn login-register" @click="openLoginModal">
           <i class="fas fa-user-shield btn-icon"></i>
           <span>登录 / 注册</span>
         </button>
       </div>
     </div>
 
-    <!-- 反诈标语滚动条 - anti-fake 图标已改为 fa-brands fa-hornbill -->
+    <!-- 反诈标语滚动条 -->
     <div class="anti-fraud-ticker">
       <div class="ticker-content">
         <i class="fa-brands fa-hornbill"></i> 全民反诈，你我同行 · 守护财产安全，从我做起 · 96110 反诈专线
       </div>
     </div>
+
+    <!-- 登录弹窗 - 引用 login.vue 组件 -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showLoginModal" class="modal-overlay" @click.self="closeLoginModal">
+          <div class="modal-container">
+            <div class="modal-content">
+              <LoginComponent 
+                @login-success="handleLoginSuccess" 
+                @switch-to-register="handleSwitchToRegister"
+                @close-modal="closeLoginModal"
+              />
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- 注册弹窗 - 引用 register.vue 组件 -->
+    <Teleport to="body">
+      <Transition name="modal">
+        <div v-if="showRegisterModal" class="modal-overlay" @click.self="closeRegisterModal">
+          <div class="modal-container">
+            <div class="modal-content">
+              <RegisterComponent 
+                @register-success="handleRegisterSuccess"
+                @switch-to-login="handleSwitchToLogin"
+                @close-modal="closeRegisterModal"
+              />
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </nav>
 </template>
 
 <script>
 import { inject } from 'vue'
+import LoginComponent from './user/login.vue'
+import RegisterComponent from './user/register.vue'
 
 export default {
   name: 'AppNavbar',
+  components: {
+    LoginComponent,
+    RegisterComponent
+  },
   data() {
     return {
-      activeDropdown: null
+      activeDropdown: null,
+      isLoggedIn: false,
+      userNickname: '',
+      showLoginModal: false,
+      showRegisterModal: false
     }
   },
+  mounted() {
+    this.checkLoginStatus()
+    window.addEventListener('storage', this.checkLoginStatus)
+  },
+  beforeUnmount() {
+    window.removeEventListener('storage', this.checkLoginStatus)
+  },
   setup() {
-    // 注入父组件提供的打开弹窗方法
     const openEmergencyModal = inject('openEmergencyModal', null)
     return { openEmergencyModal }
   },
   methods: {
+    checkLoginStatus() {
+      this.isLoggedIn = localStorage.getItem('isLoggedIn') === 'true'
+      this.userNickname = localStorage.getItem('userNickname') || ''
+    },
     openDropdown(menu) {
       this.activeDropdown = menu
     },
@@ -137,23 +200,61 @@ export default {
       }
     },
     handleEmergency() {
-      // 调用打开弹窗的方法
       if (this.openEmergencyModal) {
         this.openEmergencyModal()
       } else {
-        // 备用方案：如果注入失败，使用 alert
         alert('紧急求助：请拨打 110 或 96110 反诈专线')
       }
     },
-    goToAuth() {
-      this.$router.push('/auth')
+    // 打开登录弹窗
+    openLoginModal() {
+      this.showLoginModal = true
+    },
+    closeLoginModal() {
+      this.showLoginModal = false
+    },
+    // 打开注册弹窗
+    openRegisterModal() {
+      this.showRegisterModal = true
+    },
+    closeRegisterModal() {
+      this.showRegisterModal = false
+    },
+    // 登录成功
+    handleLoginSuccess() {
+      this.closeLoginModal()
+      this.checkLoginStatus()
+    },
+    // 注册成功
+    handleRegisterSuccess() {
+      this.closeRegisterModal()
+      this.openLoginModal()
+    },
+    // 从登录切换到注册
+    handleSwitchToRegister() {
+      this.closeLoginModal()
+      this.openRegisterModal()
+    },
+    // 从注册切换到登录
+    handleSwitchToLogin() {
+      this.closeRegisterModal()
+      this.openLoginModal()
+    },
+    // 退出登录
+    handleLogout() {
+      localStorage.removeItem('isLoggedIn')
+      localStorage.removeItem('username')
+      localStorage.removeItem('userNickname')
+      localStorage.removeItem('userIdentity')
+      this.isLoggedIn = false
+      this.userNickname = ''
+      this.$router.push('/')
     }
   }
 }
 </script>
 
 <style scoped>
-/* 所有样式保持不变 */
 .navbar {
   background: linear-gradient(to right, #ffffff, #f0f9ff);
   box-shadow: 0 4px 20px rgba(0, 100, 178, 0.12);
@@ -427,16 +528,61 @@ export default {
   transition: all 0.2s ease;
   background: linear-gradient(145deg, #0064b2, #0099ff);
   color: white;
-  border: none;
   box-shadow: 0 4px 10px rgba(0, 100, 178, 0.3);
-  position: relative;
-  overflow: hidden;
 }
 
 .auth-btn.login-register:hover {
   background: linear-gradient(145deg, #0055a0, #0088ee);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(0, 100, 178, 0.2);
+}
+
+.user-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  border: none;
+  border-radius: 40px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: linear-gradient(145deg, #0064b2, #0099ff);
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 100, 178, 0.3);
+}
+
+.user-btn:hover {
+  background: linear-gradient(145deg, #0055a0, #0088ee);
+  transform: translateY(-2px);
+}
+
+.user-menu-dropdown {
+  position: relative;
+}
+
+.user-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 160px;
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0.5rem 0;
+}
+
+.logout-item {
+  color: #d32f2f !important;
+}
+
+.logout-item:hover {
+  background: rgba(211, 47, 47, 0.05) !important;
+}
+
+.logout-item i {
+  color: #d32f2f !important;
 }
 
 .btn-icon {
@@ -484,13 +630,66 @@ export default {
   background: #0064b2;
 }
 
-.nav-link.active .nav-icon {
-  color: #0064b2;
+/* ========== 弹窗样式（修复版） ========== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
 }
 
-.dropdown-item.router-link-active {
-  background: rgba(0, 100, 178, 0.08);
-  color: #0064b2;
+.modal-container {
+  position: relative;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal-content {
+  background: transparent;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+/* 修复动画：从中心淡入淡出，没有位移 */
+.modal-enter-active,
+.modal-leave-active {
+  transition: opacity 0.25s ease;
+}
+
+.modal-enter-from,
+.modal-leave-to {
+  opacity: 0;
+}
+
+/* 确保弹窗内的关闭按钮可见 */
+.modal-content :deep(.close-btn) {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.modal-content :deep(.close-btn:hover) {
+  background: rgba(0, 0, 0, 0.2);
+  transform: rotate(90deg);
 }
 
 @media (max-width: 1200px) {
