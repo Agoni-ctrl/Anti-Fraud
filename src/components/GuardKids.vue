@@ -226,59 +226,7 @@ const startQuiz = () => {
   font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
 }
 
-/* 页面头部 */
-.page-header {
-  text-align: center;
-  padding: 40px 20px;
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  border-bottom: 2px solid #90caf9;
-}
-
-.page-main-title {
-  font-size: 32px;
-  color: #0d47a1;
-  margin-bottom: 8px;
-  font-weight: 700;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.page-subtitle {
-  font-size: 16px;
-  color: #1976d2;
-  margin-bottom: 24px;
-  font-weight: 500;
-}
-
-.illustration-container {
-  max-width: 600px;
-  margin: 0 auto;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-}
-
-.illustration {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-/* 侧边栏头�?*/
-.sidebar-header {
-  padding: 24px 16px 16px;
-  border-bottom: 2px solid #e0f2fe;
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-}
-
-.sidebar-title {
-  font-size: 20px;
-  color: #0d47a1;
-  font-weight: 700;
-  text-align: center;
-  margin: 0;
-}
-
-/* 角色选择 */
+/* 角色选择页面 - 保持不变 */
 .role-selection {
   padding: 40px 20px;
   max-width: 1400px;
@@ -389,34 +337,13 @@ const startQuiz = () => {
   color: #2e7d32;
 }
 
-/* 互动图片 */
-.interaction-image {
-  margin: 24px 0;
-  text-align: center;
-}
-
-.interaction-img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  background: none;
-}
-
-/* 视频部分 */
-.video-section {
-  margin: 24px 0;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-}
-
 /* 页面布局 */
 .page-layout {
   display: flex;
   min-height: 60vh;
 }
 
+/* 左侧导航栏 - 保持不变 */
 .sidebar {
   width: 280px;
   background: #fff;
@@ -428,12 +355,26 @@ const startQuiz = () => {
   box-shadow: 2px 0 8px rgba(0, 100, 178, 0.08);
 }
 
+.sidebar-header {
+  padding: 20px 16px 12px;
+  border-bottom: 2px solid #e0f2fe;
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+}
+
+.sidebar-title {
+  font-size: 18px;
+  color: #0d47a1;
+  font-weight: 700;
+  text-align: center;
+  margin: 0;
+}
+
 .sidebar-nav {
-  padding: 24px 16px;
+  padding: 16px 16px;
 }
 
 .nav-section {
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
 .nav-section:last-child {
@@ -441,10 +382,10 @@ const startQuiz = () => {
 }
 
 .nav-section-title {
-  font-size: 16px;
+  font-size: 15px;
   color: #0064b2;
   font-weight: 600;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   padding-left: 8px;
 }
 
@@ -458,13 +399,13 @@ const startQuiz = () => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   color: #5a7a8a;
-  font-size: 16px;
+  font-size: 15px;
   background: #f8fbfe;
   border: 1px solid #e0f2fe;
 }
@@ -472,7 +413,6 @@ const startQuiz = () => {
 .nav-item:hover {
   background: #e0f2fe;
   color: #2a5a6a;
-  transform: translateX(4px);
 }
 
 .nav-item.active {
@@ -483,7 +423,7 @@ const startQuiz = () => {
 }
 
 .nav-icon {
-  font-size: 20px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
@@ -497,7 +437,7 @@ const startQuiz = () => {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border: 2px solid #e0f2fe;
   border-radius: 10px;
   background: #fff;
@@ -511,75 +451,90 @@ const startQuiz = () => {
 .back-btn:hover {
   background: #f8fbfe;
   border-color: #90caf9;
-  transform: translateX(-2px);
 }
 
 .back-icon {
-  font-size: 16px;
+  font-size: 14px;
 }
 
+/* ========== 右侧区域修改 - 与养老反诈页面保持一致 ========== */
 .main-content {
   flex: 1;
-  padding: 32px 40px;
+  padding: 8px 40px 32px 40px;
   background: #fff;
 }
 
 .content-header {
-  margin-bottom: 32px;
+  margin-bottom: 28px;  /* 与养老反诈页面一致，增加标题与视频间距 */
 }
 
 .page-title {
   font-size: 24px;
   color: #0d47a1;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   font-weight: 700;
 }
 
-.knowledge-section {
-  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-  border-left: 4px solid #2196f3;
-  border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
-}
-
-.knowledge-title {
-  font-size: 18px;
-  color: #1565c0;
-  margin-bottom: 12px;
-  font-weight: 600;
-}
-
-.knowledge-text {
-  color: #455a64;
-  line-height: 1.6;
-  font-size: 16px;
-}
-
+/* 视频区域 - 与养老反诈页面大小一致 */
 .video-section {
   margin-bottom: 24px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(33, 150, 243, 0.15);
-  max-width: 80%;
-  margin: 0 auto;
+  max-width: 60%;  /* 与养老反诈页面一致 */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 控制视频高度比例 - 与养老反诈页面一致 */
+.video-section :deep(.video-wrapper) {
+  padding-top: 45% !important;
+}
+
+/* 知识点区域 */
+.knowledge-section {
+  background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+  border-left: 4px solid #2196f3;
+  border-radius: 12px;
+  padding: 12px 20px;
+  margin-bottom: 16px;
+  margin-top: 4px;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+}
+
+.knowledge-title {
+  font-size: 17px;
+  color: #1565c0;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.knowledge-text {
+  color: #455a64;
+  line-height: 1.5;
+  font-size: 15px;
+}
+
+/* 互动图片 */
+.interaction-image {
+  margin: 16px 0;
+  text-align: center;
+}
+
+.interaction-img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  background: none;
 }
 
 .quiz-section {
   padding: 0;
 }
 
-/* 响应式设计 */
+/* 响应式设计 - 与养老反诈页面一致 */
 @media (max-width: 1024px) {
-  .page-header {
-    padding: 30px 16px;
-  }
-  
-  .page-main-title {
-    font-size: 28px;
-  }
-  
   .role-selection {
     padding: 30px 16px;
   }
@@ -587,6 +542,10 @@ const startQuiz = () => {
   .role-cards {
     grid-template-columns: 1fr;
     gap: 20px;
+  }
+  
+  .role-card {
+    padding: 30px;
   }
   
   .page-layout {
@@ -602,37 +561,80 @@ const startQuiz = () => {
   }
 
   .main-content {
-    padding: 24px 20px;
+    padding: 12px 20px;
+  }
+  
+  .content-header {
+    margin-bottom: 24px;
   }
 
   .page-title {
     font-size: 22px;
   }
+  
+  .video-section {
+    max-width: 75%;
+  }
 }
 
 @media (max-width: 768px) {
-  .page-header {
-    padding: 20px 12px;
-  }
-  
-  .page-main-title {
-    font-size: 24px;
-  }
-  
   .role-selection {
     padding: 20px 12px;
   }
   
+  .role-selection-title {
+    font-size: 24px;
+    margin-bottom: 24px;
+  }
+  
   .role-card {
-    padding: 20px;
+    padding: 24px;
   }
   
+  .card-title {
+    font-size: 20px;
+  }
+  
+  .role-image {
+    width: 80px;
+    height: 80px;
+  }
+
   .main-content {
-    padding: 20px 16px;
+    padding: 10px 16px;
   }
   
+  .content-header {
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+  
+  .video-section {
+    margin-bottom: 20px;
+    max-width: 90%;
+  }
+  
+  .video-section :deep(.video-wrapper) {
+    padding-top: 56.25% !important;
+  }
+
   .knowledge-section {
-    padding: 16px 20px;
+    padding: 10px 16px;
+  }
+
+  .knowledge-title {
+    font-size: 16px;
+  }
+  
+  .knowledge-text {
+    font-size: 14px;
+  }
+  
+  .interaction-image {
+    margin: 12px 0;
   }
 }
 </style>

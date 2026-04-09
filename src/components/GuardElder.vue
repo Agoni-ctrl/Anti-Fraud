@@ -243,6 +243,7 @@ onUnmounted(() => {
   min-height: 100vh;
 }
 
+/* 左侧导航栏 - 保持不变 */
 .sidebar {
   width: 280px;
   background: #fff;
@@ -330,14 +331,15 @@ onUnmounted(() => {
   flex: 1;
 }
 
+/* ========== 右侧区域修改 ========== */
 .main-content {
   flex: 1;
-  padding: 32px 40px;
+  padding: 8px 40px 32px 40px;
   background: #fff;
 }
 
 .content-header {
-  margin-bottom: 32px;
+  margin-bottom: 28px;  /* 增加下边距，从12px改为28px，让标题与视频距离更远 */
 }
 
 .page-title {
@@ -355,53 +357,58 @@ onUnmounted(() => {
   color: #0099ff;
 }
 
+/* 视频区域 - 改小 */
 .video-section {
-  margin-bottom: 48px;
+  margin-bottom: 24px;
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 4px 20px rgba(0, 100, 178, 0.12);
-  max-width: 80%;
+  max-width: 60%;
   margin-left: auto;
   margin-right: auto;
+}
+
+.video-section :deep(.video-wrapper) {
+  padding-top: 45% !important;
 }
 
 .knowledge-section {
   background: linear-gradient(135deg, #f8fbfe, #f0f9ff);
   border-radius: 16px;
-  padding: 28px 32px;
-  margin-top: 16px;
+  padding: 12px 24px;
+  margin-top: 4px;
   border: 1px solid #e0f2fe;
   border-left: 4px solid #0064b2;
 }
 
 .knowledge-title {
-  font-size: 24px;
+  font-size: 20px;
   color: #0064b2;
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .knowledge-title i {
-  font-size: 26px;
+  font-size: 22px;
   color: #ffc107;
 }
 
 .knowledge-content {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 8px;
 }
 
 .sentence-item {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  padding: 14px 18px;
+  gap: 10px;
+  padding: 8px 12px;
   background: #fff;
-  border-radius: 12px;
+  border-radius: 10px;
   border: 1px solid #e0f2fe;
   transition: all 0.2s ease;
 }
@@ -412,25 +419,25 @@ onUnmounted(() => {
 }
 
 .sentence-item i {
-  font-size: 20px;
+  font-size: 16px;
   color: #28a745;
-  margin-top: 3px;
+  margin-top: 2px;
   flex-shrink: 0;
 }
 
 .sentence-text {
   flex: 1;
   color: #2a4a6a;
-  line-height: 1.7;
-  font-size: 17px;
+  line-height: 1.5;
+  font-size: 15px;
 }
 
 .speak-btn {
   background: linear-gradient(135deg, #0064b2, #0099ff);
   border: none;
   border-radius: 50%;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
@@ -442,7 +449,7 @@ onUnmounted(() => {
 }
 
 .speak-btn i {
-  font-size: 18px;
+  font-size: 14px;
   color: #fff;
 }
 
@@ -460,6 +467,7 @@ onUnmounted(() => {
   padding: 0;
 }
 
+/* 响应式 - 右侧区域适配 */
 @media (max-width: 1024px) {
   .page-layout {
     flex-direction: column;
@@ -474,7 +482,15 @@ onUnmounted(() => {
   }
 
   .main-content {
-    padding: 24px 20px;
+    padding: 12px 20px;
+  }
+  
+  .content-header {
+    margin-bottom: 24px;  /* 平板设备间距 */
+  }
+  
+  .video-section {
+    max-width: 75%;
   }
 
   .page-title {
@@ -485,37 +501,33 @@ onUnmounted(() => {
     font-size: 26px;
   }
   
-  .video-section {
-    margin-bottom: 40px;
-  }
-  
   .knowledge-section {
-    padding: 24px 28px;
+    padding: 10px 20px;
   }
   
   .knowledge-title {
-    font-size: 22px;
+    font-size: 18px;
   }
   
   .knowledge-title i {
-    font-size: 24px;
+    font-size: 20px;
   }
 
   .sentence-text {
-    font-size: 16px;
+    font-size: 14px;
   }
   
   .sentence-item i {
-    font-size: 18px;
+    font-size: 15px;
   }
 
   .speak-btn {
-    width: 38px;
-    height: 38px;
+    width: 30px;
+    height: 30px;
   }
   
   .speak-btn i {
-    font-size: 16px;
+    font-size: 13px;
   }
 }
 
@@ -534,48 +546,75 @@ onUnmounted(() => {
   }
 
   .main-content {
-    padding: 20px 16px;
+    padding: 10px 16px;
+  }
+  
+  .content-header {
+    margin-bottom: 20px;  /* 手机设备间距 */
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 20px;
     flex-direction: column;
     align-items: flex-start;
+    gap: 8px;
   }
   
   .page-title i {
-    font-size: 24px;
+    font-size: 22px;
   }
   
   .video-section {
-    margin-bottom: 36px;
+    margin-bottom: 20px;
+    max-width: 90%;
+  }
+  
+  .video-section :deep(.video-wrapper) {
+    padding-top: 56.25% !important;
   }
 
   .knowledge-section {
-    padding: 20px 18px;
-    margin-top: 12px;
+    padding: 10px 16px;
+    margin-top: 4px;
   }
 
   .knowledge-title {
-    font-size: 20px;
+    font-size: 16px;
+    margin-bottom: 8px;
   }
   
   .knowledge-title i {
-    font-size: 22px;
+    font-size: 18px;
+  }
+  
+  .knowledge-content {
+    gap: 6px;
   }
 
   .sentence-item {
     flex-direction: column;
     align-items: flex-start;
-    gap: 10px;
+    gap: 6px;
+    padding: 8px 12px;
   }
   
   .sentence-item i {
     margin-top: 0;
   }
+  
+  .sentence-text {
+    font-size: 13px;
+    line-height: 1.45;
+  }
 
   .speak-btn {
     align-self: flex-end;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .speak-btn i {
+    font-size: 12px;
   }
 }
 </style>

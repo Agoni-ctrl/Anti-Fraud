@@ -1,5 +1,5 @@
 <template>
-  <div class="video-player-container">
+  <div class="video-player-container" ref="containerRef">
     <div class="video-wrapper" @click="togglePlay">
       <video
         ref="videoRef"
@@ -86,8 +86,11 @@
         </div>
 
         <button class="control-btn fullscreen-btn" @click="toggleFullscreen" :disabled="hasError">
-          <svg viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+          <svg v-if="!isFullscreen" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
             <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+          </svg>
+          <svg v-else viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+            <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
           </svg>
         </button>
       </div>
@@ -105,6 +108,7 @@ const props = defineProps({
   }
 })
 
+const containerRef = ref(null)
 const videoRef = ref(null)
 const isPlaying = ref(false)
 const isMuted = ref(false)
@@ -115,6 +119,16 @@ const progress = ref(0)
 const isLoading = ref(false)
 const hasError = ref(false)
 const errorMessage = ref('')
+const isFullscreen = ref(false)
+
+// 监听全屏变化
+const handleFullscreenChange = () => {
+  const fullscreenElement = document.fullscreenElement || 
+                            document.webkitFullscreenElement || 
+                            document.mozFullScreenElement ||
+                            document.msFullscreenElement
+  isFullscreen.value = !!fullscreenElement
+}
 
 // 监听视频源变化
 watch(() => props.videoUrl, () => {
@@ -219,14 +233,30 @@ const retryLoad = () => {
 }
 
 const toggleFullscreen = () => {
-  const container = document.querySelector('.video-player-container')
-  if (container) {
+  const container = containerRef.value
+  if (!container) return
+  
+  if (!isFullscreen.value) {
+    // 进入全屏
     if (container.requestFullscreen) {
       container.requestFullscreen()
     } else if (container.webkitRequestFullscreen) {
       container.webkitRequestFullscreen()
     } else if (container.mozRequestFullScreen) {
       container.mozRequestFullScreen()
+    } else if (container.msRequestFullscreen) {
+      container.msRequestFullscreen()
+    }
+  } else {
+    // 退出全屏
+    if (document.exitFullscreen) {
+      document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      document.msExitFullscreen()
     }
   }
 }
@@ -243,12 +273,22 @@ onMounted(() => {
     videoRef.value.volume = volume.value
     isLoading.value = true
   }
+  // 监听全屏变化事件
+  document.addEventListener('fullscreenchange', handleFullscreenChange)
+  document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+  document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+  document.addEventListener('MSFullscreenChange', handleFullscreenChange)
 })
 
 onBeforeUnmount(() => {
   if (videoRef.value) {
     videoRef.value.pause()
   }
+  // 移除全屏监听
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
 })
 </script>
 
@@ -274,8 +314,122 @@ onBeforeUnmount(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   background: #000;
+}
+
+/* 全屏时的样式优化 */
+.video-player-container:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-player-container:fullscreen .video-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
+.video-player-container:fullscreen .video-element {
+  position: relative;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 70px);
+  object-fit: contain;
+}
+
+.video-player-container:fullscreen .video-controls {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  padding: 12px 20px;
+}
+
+/* WebKit 全屏 */
+.video-player-container:-webkit-full-screen {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-player-container:-webkit-full-screen .video-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
+.video-player-container:-webkit-full-screen .video-element {
+  position: relative;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 70px);
+  object-fit: contain;
+}
+
+.video-player-container:-webkit-full-screen .video-controls {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  padding: 12px 20px;
+}
+
+/* Mozilla 全屏 */
+.video-player-container:-moz-full-screen {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.video-player-container:-moz-full-screen .video-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 0 !important;
+  height: auto;
+  min-height: 0;
+}
+
+.video-player-container:-moz-full-screen .video-element {
+  position: relative;
+  width: auto;
+  height: 100%;
+  max-width: 100%;
+  max-height: calc(100vh - 70px);
+  object-fit: contain;
+}
+
+.video-player-container:-moz-full-screen .video-controls {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+  padding: 12px 20px;
 }
 
 .play-overlay {

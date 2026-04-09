@@ -46,8 +46,6 @@
               </li>
             </ul>
           </div>
-          
-
         </nav>
       </aside>
 
@@ -337,6 +335,7 @@ const checkCompany = () => {
   min-height: 100vh;
 }
 
+/* 左侧导航栏 - 保持不变 */
 .sidebar {
   width: 280px;
   background: #fff;
@@ -411,71 +410,61 @@ const checkCompany = () => {
   flex: 1;
 }
 
+/* ========== 右侧区域修改 - 与其他页面视频大小一致 ========== */
 .main-content {
   flex: 1;
-  padding: 32px 40px;
+  padding: 8px 40px 32px 40px;
   background: #fff;
 }
 
 .content-header {
-  margin-bottom: 32px;
+  margin-bottom: 28px;  /* 增加标题与视频间距 */
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 26px;
   color: #2a5a6a;
-  margin-bottom: 16px;
+  margin-bottom: 0;
   font-weight: 700;
+}
+
+/* 视频区域 - 与其他页面大小一致 */
+.video-section {
+  margin-bottom: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(93, 176, 223, 0.15);
+  max-width: 60%;  /* 从76%改为60%，与其他页面一致 */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* 控制视频高度比例 - 与其他页面一致 */
+.video-section :deep(.video-wrapper) {
+  padding-top: 45% !important;  /* 从52%改为45%，与其他页面一致 */
 }
 
 .knowledge-section {
   background: linear-gradient(135deg, #e0f2fe, #d0ebfc);
   border-left: 4px solid #5db0df;
   border-radius: 12px;
-  padding: 20px 24px;
-  margin-bottom: 24px;
+  padding: 12px 20px;
+  margin-bottom: 20px;
+  margin-top: 4px;
   box-shadow: 0 2px 8px rgba(93, 176, 223, 0.15);
 }
 
 .knowledge-title {
-  font-size: 20px;
+  font-size: 18px;
   color: #5a9ab8;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   font-weight: 600;
 }
 
 .knowledge-text {
   color: #4a6a7a;
-  line-height: 1.8;
-  font-size: 16px;
-}
-
-.video-section {
-  margin-bottom: 24px;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(93, 176, 223, 0.15);
-  max-width: 80%;
-  margin: 0 auto;
-}
-
-/* 侧边栏图�?*/
-.sidebar-image {
-  padding: 16px;
-  text-align: center;
-}
-
-.sidebar-img {
-  width: 100%;
-  max-width: 200px;
-  height: auto;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(93, 176, 223, 0.15);
-  background: none;
-}
-
-.quiz-section {
-  padding: 0;
+  line-height: 1.5;
+  font-size: 15px;
 }
 
 /* 公司风险自查页面样式 */
@@ -484,19 +473,19 @@ const checkCompany = () => {
 }
 
 .check-tool-header {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .tool-description {
   color: #5a7a8a;
-  font-size: 16px;
-  margin-top: 8px;
+  font-size: 15px;
+  margin-top: 6px;
 }
 
 .check-tool-content {
   background: #f8fbfe;
   border-radius: 16px;
-  padding: 32px;
+  padding: 20px 24px;
   border: 1px solid #e0f2fe;
   box-shadow: 0 4px 16px rgba(93, 176, 223, 0.1);
 }
@@ -504,15 +493,15 @@ const checkCompany = () => {
 .input-group {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
 
 .company-input {
   flex: 1;
-  padding: 14px 18px;
+  padding: 12px 16px;
   border: 2px solid #e0f2fe;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   color: #2a5a6a;
   outline: none;
   transition: all 0.2s ease;
@@ -523,17 +512,13 @@ const checkCompany = () => {
   box-shadow: 0 0 0 3px rgba(93, 176, 223, 0.1);
 }
 
-.company-input::placeholder {
-  color: #9ab8c8;
-}
-
 .check-btn {
-  padding: 14px 24px;
+  padding: 12px 22px;
   background: linear-gradient(135deg, #5db0df, #4a98c2);
   color: #fff;
   border: none;
   border-radius: 10px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -543,24 +528,11 @@ const checkCompany = () => {
   box-shadow: 0 4px 12px rgba(93, 176, 223, 0.3);
 }
 
-.check-btn:hover {
-  background: linear-gradient(135deg, #4a98c2, #3a87b2);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(93, 176, 223, 0.4);
-}
-
-.check-btn:active {
-  transform: translateY(0);
-}
-
-.btn-icon {
-  font-size: 18px;
-}
-
 .result-card {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
+  padding: 18px 22px;
+  margin-top: 16px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   border-left: 4px solid;
 }
@@ -580,121 +552,92 @@ const checkCompany = () => {
 .result-header {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: 10px;
+  margin-bottom: 12px;
 }
 
 .result-icon {
-  font-size: 32px;
+  font-size: 28px;
 }
 
 .result-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
-}
-
-.result-card.high .result-title {
-  color: #ff6b6b;
-}
-
-.result-card.medium .result-title {
-  color: #ffa94d;
-}
-
-.result-card.low .result-title {
-  color: #51cf66;
 }
 
 .result-description {
   color: #4a6a7a;
-  line-height: 1.6;
-  margin-bottom: 20px;
-  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  font-size: 15px;
 }
 
 .risk-list,
 .suggestion-list {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .risk-list-title,
 .suggestion-list-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   color: #2a5a6a;
-}
-
-.risk-list ul,
-.suggestion-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
 }
 
 .risk-list li,
 .suggestion-list li {
-  padding: 8px 0;
-  padding-left: 24px;
-  position: relative;
-  color: #4a6a7a;
-  line-height: 1.6;
-}
-
-.risk-list li::before,
-.suggestion-list li::before {
-  content: '•';
-  position: absolute;
-  left: 8px;
-  color: #84cbf3;
-  font-weight: bold;
+  padding: 6px 0;
+  padding-left: 22px;
+  font-size: 14px;
 }
 
 .check-tips {
   background: #fff;
   border-radius: 12px;
-  padding: 24px;
+  padding: 18px 22px;
+  margin-top: 16px;
   border: 1px solid #e0f2fe;
 }
 
 .tips-title {
-  font-size: 18px;
+  font-size: 17px;
   color: #2a5a6a;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   font-weight: 600;
 }
 
 .tips-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .tip-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 10px 14px;
   background: #f8fbfe;
   border-radius: 8px;
 }
 
 .tip-icon {
-  font-size: 24px;
+  font-size: 22px;
   flex-shrink: 0;
 }
 
 .tip-text {
   color: #4a6a7a;
-  font-size: 15px;
-  line-height: 1.6;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.tip-text strong {
-  color: #2a5a6a;
-  margin-right: 8px;
+.quiz-section {
+  padding: 0;
 }
 
+/* 响应式 - 与其他页面一致 */
 @media (max-width: 1024px) {
   .page-layout {
     flex-direction: column;
@@ -709,15 +652,23 @@ const checkCompany = () => {
   }
 
   .main-content {
-    padding: 24px 20px;
+    padding: 12px 20px;
+  }
+  
+  .content-header {
+    margin-bottom: 24px;
   }
 
   .page-title {
     font-size: 24px;
   }
+  
+  .video-section {
+    max-width: 75%;  /* 平板宽度与其他页面一致 */
+  }
 
   .check-tool-content {
-    padding: 24px;
+    padding: 16px 20px;
   }
 
   .input-group {
@@ -736,19 +687,48 @@ const checkCompany = () => {
   }
 
   .main-content {
-    padding: 20px 16px;
+    padding: 10px 16px;
+  }
+  
+  .content-header {
+    margin-bottom: 20px;
   }
 
   .page-title {
-    font-size: 22px;
+    font-size: 20px;
+  }
+  
+  .video-section {
+    margin-bottom: 20px;
+    max-width: 90%;  /* 手机宽度与其他页面一致 */
+  }
+  
+  .video-section :deep(.video-wrapper) {
+    padding-top: 56.25% !important;
   }
 
   .knowledge-section {
-    padding: 16px 18px;
+    padding: 10px 16px;
   }
 
   .knowledge-title {
-    font-size: 18px;
+    font-size: 16px;
+  }
+  
+  .knowledge-text {
+    font-size: 14px;
+  }
+
+  .check-tool-content {
+    padding: 14px 16px;
+  }
+  
+  .result-card {
+    padding: 14px 18px;
+  }
+  
+  .check-tips {
+    padding: 14px 18px;
   }
 }
 </style>
