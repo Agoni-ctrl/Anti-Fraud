@@ -1865,13 +1865,146 @@ export default {
         }
       }, 800);
     },
-    
+    ////////////////////////////////////////////////////////////////
+
     mockDetectionResult() {
       const isText = this.selectedFileType === 'text';
       // TODO: 这里需要修改
       const file = this.uploadedFile;
       const isFace = this.selectedFileType === 'image' && this.imageSubtype === 'face';
       
+
+     // 文本
+      const text_result=ref(null)
+      const detectText = async () => {
+      //  这一部分你自己改  inpitText应该不用我说吧 自己替换
+      if (!inputText.value.trim()) {
+        alert('请输入文本！');
+        return;
+      }
+
+      try {
+        const response = await axios.post('http://localhost:5001/detect_text', {
+          text: inputText.value
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.data.code === 200) {
+          text_result.value = response.data.data;
+        } else {
+          alert(`检测失败：${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error('请求出错：', error);
+        alert('请求失败，请检查网络或后端服务');
+      }
+    }
+
+      // 图片
+      const image_result=ref(null)
+      const detectImage = async () => {
+        //  自己除了 图片文件 这个selectedFile 自己替换自己判断一下啊 类型啥的 
+      if (!file.value) {
+        alert('请先选择图片文件！');
+        return;
+      }
+
+      try {
+        // 创建 FormData 对象
+        const formData = new FormData();
+        formData.append('image', file.value);
+
+        const response = await axios.post('http://localhost:5002/detect_image', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+
+        if (response.data.code === 200) {
+          image_result.value = response.data.data;
+        } else {
+          alert(`检测失败：${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error('请求出错：', error);
+        alert('请求失败，请检查网络或后端服务');
+      }
+    }
+
+  
+
+    // 音频
+      const audio_result=ref(null)
+      const detectAudio = async () => {
+        //  自己改 自己判断一下啊 类型啥的 
+      if (!file.value) {
+        alert('请先选择音频文件！');
+        return;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('audio', file.value);
+
+        const response = await axios.post('http://localhost:5003/detect_audio', formData);
+
+        if (response.data.code === 200) {
+          audio_result.value = response.data.data;
+        } else {
+          alert(`检测失败：${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error('请求出错：', error);
+        alert('请求失败，请检查网络或后端服务');
+      }
+    }
+
+
+    //  视频
+      const video_result=ref(null)
+      const detectVideo = async () => {
+        //  自己改 自己判断一下啊 类型啥的 
+      if (!file.value) return;
+
+      try {
+        const formData = new FormData();
+        formData.append('video', file.value);
+
+        const response = await axios.post('http://localhost:5004/detect_video', formData, {
+        });
+
+        if (response.data.code === 200) {
+          video_result.value = response.data.data;
+        } else {
+          alert(`检测失败：${response.data.msg}`);
+        }
+      } catch (error) {
+        console.error('请求错误:', error);
+        alert('请求失败，请检查后端是否启动或网络连接');
+      } 
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       if (isText) {
         this.currentResult = {
           fileName: '文本输入',
