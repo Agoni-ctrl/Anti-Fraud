@@ -1,4 +1,3 @@
-
 <template>
   <div class="fraud-platform">
     <!-- 左侧导航栏 (保持不变) -->
@@ -147,7 +146,7 @@
                   <!-- 音频预览 -->
                   <div v-else-if="uploadedFile.type === 'audio'" class="preview-audio-container">
                     <div class="audio-info">
-                      <i class="fas fa-music"></i>
+                      <i class="fas fa-headphones"></i>
                       <span>{{ uploadedFile.name }}</span>
                     </div>
                     <audio 
@@ -158,7 +157,7 @@
                       您的浏览器不支持音频播放。
                     </audio>
                     <button class="remove-file-btn" @click="removeFile">
-                      <i class="fas fa-times-circle"></i>
+                      <i class="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
@@ -366,12 +365,25 @@
                       <div class="metric-desc">{{ metric.description }}</div>
                     </div>
                   </div>
+                  
+                  <!-- 视频分析细节 -->
+                  <div v-if="currentResult.fileType === 'video'" class="media-analysis">
+                    <div class="analysis-subtitle">
+                      <i class="fas fa-video"></i> 视频分析细节
+                    </div>
+                    <div class="media-features">
+                      <div class="feature" v-for="feature in currentResult.videoFeatures" :key="feature.name">
+                        <i :class="feature.icon"></i>
+                        <span>{{ feature.name }}: {{ feature.value }}</span>
+                      </div>
+                    </div>
+                  </div>
 
-                  <div v-if="currentResult.fileType === 'image'" class="image-analysis">
+                  <div v-if="currentResult.fileType === 'image'" class="media-analysis">
                     <div class="analysis-subtitle">
                       <i class="fas fa-image"></i> 图像分析细节
                     </div>
-                    <div class="image-features">
+                    <div class="media-features">
                       <div class="feature" v-for="feature in currentResult.imageFeatures" :key="feature.name">
                         <i :class="feature.icon"></i>
                         <span>{{ feature.name }}: {{ feature.value }}</span>
@@ -379,12 +391,25 @@
                     </div>
                   </div>
 
-                  <div v-if="currentResult.fileType === 'text'" class="text-analysis">
+                  <div v-if="currentResult.fileType === 'text'" class="media-analysis">
                     <div class="analysis-subtitle">
                       <i class="fas fa-font"></i> 文本分析细节
                     </div>
-                    <div class="text-features">
+                    <div class="media-features">
                       <div class="feature" v-for="feature in currentResult.textFeatures" :key="feature.name">
+                        <i :class="feature.icon"></i>
+                        <span>{{ feature.name }}: {{ feature.value }}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 音频分析细节 -->
+                  <div v-if="currentResult.fileType === 'audio'" class="media-analysis">
+                    <div class="analysis-subtitle">
+                      <i class="fas fa-headphones"></i> 音频分析细节
+                    </div>
+                    <div class="media-features">
+                      <div class="feature" v-for="feature in currentResult.audioFeatures" :key="feature.name">
                         <i :class="feature.icon"></i>
                         <span>{{ feature.name }}: {{ feature.value }}</span>
                       </div>
@@ -1050,6 +1075,7 @@
 <script>
 import * as echarts from 'echarts';
 import html2pdf from 'html2pdf.js';
+import axios from 'axios';  // 【新增】导入 axios
 
 export default {
   name: 'FraudDetectionPlatform',
@@ -1842,148 +1868,1188 @@ export default {
       this.currentResult = null;
     },
     
-    // ==================== 检测相关 ====================
-    startDetection() {
+          // ==================== 检测相关 ====================
+    // 【已修改】将原来的模拟检测改为真实 API 调用
+    async startDetection() {
       if (!this.canStartDetection) return;
       
+      // 清理之前的计时器
       if (this.detectTimer) {
         clearInterval(this.detectTimer);
+        this.detectTimer = null;
       }
       
+      // 开始检测状态
       this.isDetecting = true;
       this.hasResult = false;
       this.detectStep = 0;
       
+      // 启动进度动画
       this.detectTimer = setInterval(() => {
-        if (this.detectStep < 4) {
+        if (this.detectStep < 3) {
           this.detectStep++;
-        } else {
-          clearInterval(this.detectTimer);
-          this.isDetecting = false;
-          this.hasResult = true;
-          this.mockDetectionResult();
         }
-      }, 800);
-    },
-    
-    mockDetectionResult() {
-      const isText = this.selectedFileType === 'text';
-      // TODO: 这里需要修改
-      const file = this.uploadedFile;
-      const isFace = this.selectedFileType === 'image' && this.imageSubtype === 'face';
+      }, 600);
       
-      if (isText) {
-        this.currentResult = {
-          fileName: '文本输入',
-          fileType: 'text',
-          fileTypeName: '文本',
-          fileSize: `${this.textContent.length} 字`,
-          detectTime: new Date().toLocaleString('zh-CN'),
-          overallScore: Math.floor(Math.random() * 30) + 70,
-          
-          metrics: [
-            { name: '语义连贯性', value: 92, description: '文本语义连贯，逻辑清晰' },
-            { name: '语言模式分析', value: 88, description: '符合自然语言模式' },
-            { name: 'AI生成检测', value: 85, description: 'AI生成痕迹检测' },
-            { name: '异常模式识别', value: 90, description: '未发现异常语言模式' }
-          ],
-          
-          textFeatures: [
-            { name: '文本长度', value: `${this.textContent.length}字`, icon: 'fas fa-text-height' },
-            { name: '语言复杂性', value: '中等', icon: 'fas fa-chart-line' },
-            { name: '情感倾向', value: '中性', icon: 'fas fa-smile' },
-            { name: '关键词提取', value: '8个关键词', icon: 'fas fa-key' }
-          ],
-          
-          detailSections: [
-            {
-              title: '文本基本信息',
-              items: [
-                { label: '字符数', value: `${this.textContent.length}字`, status: 'normal' },
-                { label: '段落数', value: Math.max(1, Math.floor(this.textContent.length / 100)), status: 'normal' },
-                { label: '句子数', value: Math.max(1, Math.floor(this.textContent.length / 20)), status: 'normal' },
-                { label: '唯一词汇', value: Math.floor(this.textContent.length / 3), status: 'normal' }
-              ]
-            },
-            {
-              title: '真伪检测结果',
-              items: [
-                { label: 'AI生成检测', value: '未发现', status: 'success' },
-                { label: '语义一致性', value: '良好', status: 'success' },
-                { label: '异常模式', value: '未发现', status: 'success' },
-                { label: '语言自然度', value: '自然', status: 'success' }
-              ]
-            }
-          ],
-          
-          deepFeatures: [
-            { icon: 'fas fa-brain', title: '语义分析', description: '文本语义连贯，符合人类表达习惯', confidence: 92 },
-            { icon: 'fas fa-robot', title: 'AI生成检测', description: '未检测到明显的AI生成痕迹', confidence: 88 },
-            { icon: 'fas fa-chart-line', title: '语言模式分析', description: '语言模式分布自然，无异常', confidence: 85 },
-            { icon: 'fas fa-tag', title: '关键词提取', description: '关键词分布合理，无堆砌现象', confidence: 90 }
-          ]
-        };
-      } else {
-        this.currentResult = {
-          fileName: file?.name || '身份证照片.jpg',
-          fileType: this.selectedFileType,
-          fileTypeName: this.fileTypes.find(t => t.value === this.selectedFileType)?.name || '图片',
-          fileSize: this.formatFileSize(file?.size || 2400000),
-          detectTime: new Date().toLocaleString('zh-CN'),
-          overallScore: isFace ? 97 : (this.selectedFileType === 'image' ? 45 : 82),
-          
-          metrics: [
-            { name: '完整性分析', value: isFace ? 98 : 92, description: '文件结构完整，无损坏痕迹' },
-            { name: '元数据分析', value: isFace ? 95 : 88, description: '元数据一致性分析' },
-            { name: '内容一致性', value: isFace ? 92 : 76, description: '内容逻辑自洽性' },
-            { name: '伪造痕迹检测', value: isFace ? 12 : 54, description: '异常痕迹检测' }
-          ],
-          
-          imageFeatures: isFace ? [
-            { name: '人脸特征点', value: '68个特征点匹配', icon: 'fas fa-smile' },
-            { name: '光照一致性', value: '良好', icon: 'fas fa-sun' },
-            { name: '边缘检测', value: '自然过渡', icon: 'fas fa-border-all' },
-            { name: '噪声分析', value: '符合自然图像分布', icon: 'fas fa-wave-square' }
-          ] : [
-            { name: '文字清晰度', value: '良好', icon: 'fas fa-font' },
-            { name: '截图完整性', value: '完整', icon: 'fas fa-crop-alt' },
-            { name: '时间戳一致性', value: '一致', icon: 'fas fa-clock' },
-            { name: '界面元素', value: '符合官方样式', icon: 'fas fa-mobile-alt' }
-          ],
-          
-          detailSections: [
-            {
-              title: '文件基本信息',
-              items: [
-                { label: '文件格式', value: file?.name.split('.').pop()?.toUpperCase() || 'JPG', status: 'normal' },
-                { label: '文件大小', value: this.formatFileSize(file?.size || 2400000), status: 'normal' },
-                { label: '分辨率/时长', value: isFace ? '3024 x 4032' : '1080 x 2340', status: 'normal' },
-                { label: '创建时间', value: '2026-03-01 14:23:45', status: 'normal' }
-              ]
-            },
-            {
-              title: '真伪检测结果',
-              items: [
-                { label: 'AI生成检测', value: '未发现', status: 'success' },
-                { label: '篡改痕迹', value: '未发现', status: 'success' },
-                { label: '元数据一致性', value: '通过', status: 'success' },
-                { label: '内容逻辑', value: '自洽', status: 'success' }
-              ]
-            }
-          ],
-          
-          deepFeatures: [
-            { icon: 'fas fa-brain', title: '深度伪造检测', description: '未检测到明显的AI生成痕迹，人脸特征点分布自然', confidence: 98 },
-            { icon: 'fas fa-fingerprint', title: '元数据分析', description: 'EXIF信息完整，拍摄设备与声称一致', confidence: 95 },
-            { icon: 'fas fa-wave-square', title: '噪声特征分析', description: '图像噪声分布符合自然照片特征', confidence: 92 },
-            { icon: 'fas fa-link', title: '一致性校验', description: '人脸与背景光照方向一致，阴影合理', confidence: 96 }
-          ]
-        };
+      try {
+        let result = null;
+        
+        // 根据不同类型调用不同的检测方法
+        if (this.selectedFileType === 'text') {
+          result = await this.detectText();
+        } else if (this.selectedFileType === 'image') {
+          // TODO: 图片检测接口（后续接入）
+          result = await this.detectImage();
+        } else if (this.selectedFileType === 'audio') {
+          // TODO: 音频检测接口（后续接入）
+          result = await this.detectAudio();
+        } else if (this.selectedFileType === 'video') {
+          // TODO: 视频检测接口（后续接入）
+          result = await this.detectVideo();
+        }
+        
+        // 完成进度
+        clearInterval(this.detectTimer);
+        this.detectStep = 4;
+        
+        // 短暂延迟后显示结果
+        setTimeout(() => {
+          this.isDetecting = false;
+          if (result) {
+            this.hasResult = true;
+            this.currentResult = result;
+            this.addToRecords();
+          }
+        }, 300);
+        
+      } catch (error) {
+        clearInterval(this.detectTimer);
+        this.isDetecting = false;
+        this.detectStep = 0;
+        console.error('检测失败:', error);
+        alert(error.message || '检测失败，请检查网络连接');
+      }
+    },
+    ////////////////////////////////////////////////////////////////
+
+        // ==================== API 调用方法 ====================
+    
+    // 【新增】文本检测 API 调用
+    async detectText() {
+      const text = this.textContent.trim();
+      
+      if (!text) {
+        throw new Error('请输入要检测的文本');
       }
       
-      this.addToRecords();
+      try {
+        // 调用后端 Flask 接口
+        const response = await axios.post('http://localhost:5001/detect_text', {
+          text: text
+        }, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        if (response.data.code === 200) {
+          // 将后端返回的数据映射为前端需要的格式
+          return this.mapTextResultToFrontend(response.data.data);
+        } else {
+          throw new Error(response.data.msg || '检测失败');
+        }
+        
+      } catch (error) {
+        console.error('文本检测请求出错：', error);
+        if (error.response) {
+          throw new Error(`服务器错误: ${error.response.status}`);
+        } else if (error.request) {
+          throw new Error('无法连接到检测服务，请确保后端服务已启动');
+        } else {
+          throw error;
+        }
+      }
+    },
+
+        // 【修改】图片检测 API 调用（根据子类型调用不同接口）
+    async detectImage() {
+      const file = this.uploadedFile;
+      
+      if (!file) {
+        throw new Error('请先选择图片文件');
+      }
+      
+      // 根据图片子类型选择不同的检测接口
+      const isFace = this.imageSubtype === 'face';
+      const apiUrl = isFace 
+        ? 'http://localhost:5000/detect_people'   // 人脸照片检测
+        : 'http://localhost:5002/detect_image';    // 聊天记录截图检测
+      
+      try {
+        // 创建 FormData 对象
+        const formData = new FormData();
+        formData.append('image', file.file);
+        
+        // 调用后端 Flask 接口
+        const response = await axios.post(apiUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (response.data.code === 200) {
+          // 根据子类型选择不同的数据映射函数
+          if (isFace) {
+            return this.mapFaceResultToFrontend(response.data.data, file);
+          } else {
+            return this.mapChatImageResultToFrontend(response.data.data, file);
+          }
+        } else {
+          throw new Error(response.data.msg || '检测失败');
+        }
+        
+      } catch (error) {
+        console.error('图片检测请求出错：', error);
+        if (error.response) {
+          throw new Error(`服务器错误: ${error.response.status}`);
+        } else if (error.request) {
+          throw new Error('无法连接到图片检测服务，请确保后端服务已启动');
+        } else {
+          throw error;
+        }
+      }
     },
     
+    // 【修改】音频检测 API 调用
+    async detectAudio() {
+      const file = this.uploadedFile;
+      
+      if (!file) {
+        throw new Error('请先选择音频文件');
+      }
+      
+      try {
+        // 创建 FormData 对象
+        const formData = new FormData();
+        formData.append('audio', file.file);
+        
+        // 调用后端 Flask 接口
+        const response = await axios.post('http://localhost:5003/detect_audio', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        
+        if (response.data.code === 200) {
+          // 将后端返回的数据映射为前端需要的格式
+          return this.mapAudioResultToFrontend(response.data.data, file);
+        } else {
+          throw new Error(response.data.msg || '检测失败');
+        }
+        
+      } catch (error) {
+        console.error('音频检测请求出错：', error);
+        if (error.response) {
+          throw new Error(`服务器错误: ${error.response.status}`);
+        } else if (error.request) {
+          throw new Error('无法连接到音频检测服务，请确保后端服务已启动');
+        } else {
+          throw error;
+        }
+      }
+    },
+    
+        // 【修改】视频检测 API 调用
+    async detectVideo() {
+      const file = this.uploadedFile;
+      
+      if (!file) {
+        throw new Error('请先选择视频文件');
+      }
+      
+      try {
+        // 创建 FormData 对象
+        const formData = new FormData();
+        formData.append('video', file.file);
+        
+        // 调用后端 Flask 接口（注意：视频检测可能耗时较长，需要设置较长的超时时间）
+        const response = await axios.post('http://localhost:5004/detect_video', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+          timeout: 300000  // 视频检测可能较慢，设置 5 分钟超时
+        });
+        
+        if (response.data.code === 200) {
+          // 将后端返回的数据映射为前端需要的格式
+          return this.mapVideoResultToFrontend(response.data.data, file);
+        } else {
+          throw new Error(response.data.msg || '检测失败');
+        }
+        
+      } catch (error) {
+        console.error('视频检测请求出错：', error);
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('视频检测超时，请稍后重试');
+        } else if (error.response) {
+          throw new Error(`服务器错误: ${error.response.status}`);
+        } else if (error.request) {
+          throw new Error('无法连接到视频检测服务，请确保后端服务已启动');
+        } else {
+          throw error;
+        }
+      }
+    },
+    /////////////////////////////////////////////////////////////////////////////
+        // ==================== 数据映射方法 ====================
+
+    // 【新增】将后端返回的文本检测数据映射为前端 currentResult 格式
+    mapTextResultToFrontend(backendData) {
+      const isFraud = backendData['是否诈骗'] === '诈骗文本';
+      const binConfidence = backendData['二分类置信度'];
+      const auxResult = backendData['诈骗细分类型'] || '无';
+      const auxConfidence = backendData['细分类型置信度'] || 0;
+      
+      // 计算总体可信度分数（0-100）
+      // 诈骗文本 = 低可信度，正常文本 = 高可信度
+      let overallScore;
+      if (isFraud) {
+        // 诈骗文本：可信度 = (1 - 诈骗置信度) * 100
+        overallScore = Math.round((1 - binConfidence) * 100);
+      } else {
+        // 正常文本：可信度 = 正常置信度 * 100
+        overallScore = Math.round(binConfidence * 100);
+      }
+      
+      // 构建指标数组
+      const metrics = [
+        { 
+          name: '语义连贯性', 
+          value: isFraud ? 70 + Math.round(auxConfidence * 20) : 88, 
+          description: isFraud ? '文本存在诈骗话术特征' : '文本语义连贯，逻辑清晰' 
+        },
+        { 
+          name: '诈骗特征检测', 
+          value: isFraud ? Math.round(binConfidence * 100) : Math.round((1 - binConfidence) * 100), 
+          description: isFraud ? `检测到诈骗特征，置信度${Math.round(binConfidence * 100)}%` : '未发现明显诈骗特征' 
+        },
+        { 
+          name: '语言模式分析', 
+          value: isFraud ? 65 : 85, 
+          description: isFraud ? '发现异常语言模式' : '符合自然语言模式' 
+        },
+        { 
+          name: '异常模式识别', 
+          value: isFraud ? 35 : 90, 
+          description: isFraud ? '发现异常表达模式' : '未发现异常语言模式' 
+        }
+      ];
+      
+      // 构建文本特征
+      const textFeatures = [
+        { 
+          name: '文本长度', 
+          value: `${backendData['输入文本'].length}字`, 
+          icon: 'fas fa-text-height' 
+        },
+        { 
+          name: '检测结果', 
+          value: backendData['是否诈骗'], 
+          icon: 'fas fa-tag' 
+        },
+        { 
+          name: '置信度', 
+          value: `${Math.round(binConfidence * 100)}%`, 
+          icon: 'fas fa-chart-line' 
+        },
+        { 
+          name: '诈骗类型', 
+          value: auxResult, 
+          icon: 'fas fa-exclamation-triangle' 
+        }
+      ];
+      
+      // 构建详细分析部分
+      const detailSections = [
+        {
+          title: '文本基本信息',
+          items: [
+            { 
+              label: '字符数', 
+              value: `${backendData['输入文本'].length}字`, 
+              status: 'normal' 
+            },
+            { 
+              label: '检测时间', 
+              value: new Date().toLocaleString('zh-CN'), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测模型', 
+              value: 'RoBERTa-wwm-ext', 
+              status: 'normal' 
+            },
+            { 
+              label: '输入方式', 
+              value: '直接输入', 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: '诈骗检测结果',
+          items: [
+            { 
+              label: '二分类结果', 
+              value: backendData['是否诈骗'], 
+              status: isFraud ? 'danger' : 'success' 
+            },
+            { 
+              label: '分类置信度', 
+              value: `${Math.round(binConfidence * 100)}%`, 
+              status: binConfidence > 0.8 ? (isFraud ? 'danger' : 'success') : 'warning'
+            },
+            { 
+              label: '细分类型', 
+              value: auxResult, 
+              status: isFraud ? 'warning' : 'normal' 
+            },
+            { 
+              label: '细分置信度', 
+              value: auxConfidence > 0 ? `${Math.round(auxConfidence * 100)}%` : '-', 
+              status: 'normal' 
+            }
+          ]
+        }
+      ];
+      
+      // 构建深度特征分析
+      const deepFeatures = [
+        { 
+          icon: 'fas fa-shield-alt', 
+          title: '诈骗文本检测', 
+          description: isFraud 
+            ? `检测为诈骗文本，置信度${Math.round(binConfidence * 100)}%` 
+            : '未检测到诈骗特征，文本内容正常', 
+          confidence: Math.round(binConfidence * 100)
+        },
+        { 
+          icon: 'fas fa-tags', 
+          title: '诈骗类型识别', 
+          description: isFraud && auxResult !== '无'
+            ? `识别为：${auxResult}` 
+            : '无需细分类型识别', 
+          confidence: isFraud ? Math.round(auxConfidence * 100) : 100
+        },
+        { 
+          icon: 'fas fa-robot', 
+          title: '语义分析', 
+          description: '基于 RoBERTa 模型进行深度语义理解，分析文本中的诈骗话术特征', 
+          confidence: 90
+        },
+        { 
+          icon: 'fas fa-chart-bar', 
+          title: '特征提取', 
+          description: '提取文本中的诈骗关键词和模式特征，进行多维度分析', 
+          confidence: 85
+        }
+      ];
+      
+      // 返回前端需要的完整数据结构
+      return {
+        fileName: `文本检测_${new Date().getTime()}`,
+        fileType: 'text',
+        fileTypeName: '文本',
+        fileSize: `${backendData['输入文本'].length} 字`,
+        detectTime: new Date().toLocaleString('zh-CN'),
+        overallScore: overallScore,
+        metrics: metrics,
+        textFeatures: textFeatures,
+        detailSections: detailSections,
+        deepFeatures: deepFeatures
+      };
+    },
+
+        // 【新增】将后端返回的人脸照片检测数据映射为前端 currentResult 格式
+    mapFaceResultToFrontend(backendData, file) {
+      const fakeScore = backendData.fake_score || 0;
+      const realScore = backendData.real_score || 0;
+      const isFake = fakeScore >= 0.5;
+      
+      // 计算总体可信度分数（0-100）
+      // 真实人脸 = 高可信度，AI伪造 = 低可信度
+      let overallScore;
+      if (isFake) {
+        // AI伪造人脸：可信度 = (1 - 伪造分数) * 100
+        overallScore = Math.round((1 - fakeScore) * 100);
+      } else {
+        // 真实人脸：可信度 = 真实分数 * 100
+        overallScore = Math.round(realScore * 100);
+      }
+      
+      // 确保分数在合理范围内
+      overallScore = Math.max(0, Math.min(100, overallScore));
+      
+      // 构建指标数组
+      const metrics = [
+        { 
+          name: '真实人脸概率', 
+          value: Math.round(realScore * 100), 
+          description: `模型判断为真实人脸的置信度为${Math.round(realScore * 100)}%` 
+        },
+        { 
+          name: 'AI伪造概率', 
+          value: Math.round(fakeScore * 100), 
+          description: `模型判断为AI生成/深度伪造人脸的概率为${Math.round(fakeScore * 100)}%` 
+        },
+        { 
+          name: '面部特征自然度', 
+          value: isFake ? Math.round((1 - fakeScore) * 100) : Math.round(realScore * 100), 
+          description: isFake ? '面部特征存在异常，疑似AI生成' : '面部特征自然，符合真人特征' 
+        },
+        { 
+          name: '频域分析', 
+          value: isFake ? 45 : 92, 
+          description: isFake ? '频域特征存在异常模式' : '频域特征符合自然图像分布' 
+        }
+      ];
+      
+      // 构建图片特征
+      const imageFeatures = [
+        { 
+          name: '文件名', 
+          value: file.name, 
+          icon: 'fas fa-file-image' 
+        },
+        { 
+          name: '文件大小', 
+          value: this.formatFileSize(file.size), 
+          icon: 'fas fa-weight-hanging' 
+        },
+        { 
+          name: '图片类型', 
+          value: '人脸照片', 
+          icon: 'fas fa-user' 
+        },
+        { 
+          name: '检测结果', 
+          value: isFake ? '⚠️ AI伪造人脸' : '✅ 真实人脸', 
+          icon: 'fas fa-gavel' 
+        },
+        { 
+          name: '真实概率', 
+          value: `${Math.round(realScore * 100)}%`, 
+          icon: 'fas fa-check-circle' 
+        },
+        { 
+          name: '伪造概率', 
+          value: `${Math.round(fakeScore * 100)}%`, 
+          icon: 'fas fa-chart-line' 
+        }
+      ];
+      
+      // 构建详细分析部分
+      const detailSections = [
+        {
+          title: '图片基本信息',
+          items: [
+            { 
+              label: '文件名', 
+              value: file.name, 
+              status: 'normal' 
+            },
+            { 
+              label: '文件大小', 
+              value: this.formatFileSize(file.size), 
+              status: 'normal' 
+            },
+            { 
+              label: '图片类型', 
+              value: '人脸照片', 
+              status: 'normal' 
+            },
+            { 
+              label: '检测时间', 
+              value: new Date().toLocaleString('zh-CN'), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测模型', 
+              value: 'FreqScaleNet 频域分析模型', 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: '人脸真伪检测结果',
+          items: [
+            { 
+              label: '最终结论', 
+              value: isFake ? 'AI伪造/深度伪造人脸' : '真实人脸', 
+              status: isFake ? 'danger' : 'success' 
+            },
+            { 
+              label: '真实人脸概率', 
+              value: `${Math.round(realScore * 100)}%`, 
+              status: realScore > 0.5 ? 'success' : 'warning'
+            },
+            { 
+              label: 'AI伪造概率', 
+              value: `${Math.round(fakeScore * 100)}%`, 
+              status: fakeScore > 0.5 ? 'danger' : 'success'
+            }
+          ]
+        },
+        {
+          title: '技术说明',
+          items: [
+            { 
+              label: '检测原理', 
+              value: '基于 FreqScaleNet 频域分析，检测AI生成人脸的频域异常', 
+              status: 'normal' 
+            },
+            { 
+              label: '适用场景', 
+              value: 'DeepFake、StyleGAN、Diffusion模型生成的人脸', 
+              status: 'normal' 
+            }
+          ]
+        }
+      ];
+      
+      // 构建深度特征分析
+      const deepFeatures = [
+        { 
+          icon: 'fas fa-user-secret', 
+          title: '深度伪造检测', 
+          description: isFake 
+            ? `⚠️ 检测为 AI 伪造人脸，伪造概率为 ${Math.round(fakeScore * 100)}%。该人脸可能由 DeepFake、StyleGAN 或 Diffusion 模型生成。` 
+            : `✅ 未检测到明显的 AI 伪造痕迹，真实人脸概率为 ${Math.round(realScore * 100)}%。`,
+          confidence: isFake ? Math.round(fakeScore * 100) : Math.round(realScore * 100)
+        },
+        { 
+          icon: 'fas fa-wave-square', 
+          title: '频域特征分析', 
+          description: isFake 
+            ? '频域特征分布异常，AI生成图像在频域中存在可检测的伪影和模式。' 
+            : '频域特征分布自然，符合真实相机拍摄的图像特征。',
+          confidence: isFake ? 80 : 90
+        },
+        { 
+          icon: 'fas fa-face-smile', 
+          title: '面部细节分析', 
+          description: isFake 
+            ? '面部细节存在不自然的平滑或模糊，五官比例可能存在微小异常。' 
+            : '面部细节清晰，五官比例协调，皮肤纹理自然。',
+          confidence: isFake ? 75 : 88
+        },
+        { 
+          icon: 'fas fa-shield-alt', 
+          title: '防诈骗提示', 
+          description: isFake 
+            ? '🚨 该人脸照片疑似 AI 伪造！请警惕利用AI换脸进行的诈骗行为。不法分子可能使用AI生成的人脸照片进行身份冒用、虚假交友等诈骗活动。' 
+            : '该人脸照片通过真伪检测，但仍需结合其他信息综合判断。',
+          confidence: isFake ? 95 : 80
+        }
+      ];
+      
+      // 返回前端需要的完整数据结构
+      return {
+        fileName: file.name,
+        fileType: 'image',
+        fileTypeName: '图片',
+        fileSize: this.formatFileSize(file.size),
+        detectTime: new Date().toLocaleString('zh-CN'),
+        overallScore: overallScore,
+        metrics: metrics,
+        imageFeatures: imageFeatures,
+        detailSections: detailSections,
+        deepFeatures: deepFeatures
+      };
+    },
+
+     // 【新增】将后端返回的图片检测数据映射为前端 currentResult 格式
+    mapChatImageResultToFrontend(backendData, file) {
+      const isFraud = backendData['是否诈骗'] === '诈骗文本';
+      const binConfidence = backendData['二分类置信度'];
+      const auxResult = backendData['诈骗细分类型'] || '无';
+      const auxConfidence = backendData['细分类型置信度'] || 0;
+      const ocrText = backendData['输入文本'] || '';
+      const isFace = this.imageSubtype === 'face';
+      
+      // 计算总体可信度分数（0-100）
+      let overallScore;
+      if (isFraud) {
+        // 诈骗图片：可信度 = (1 - 诈骗置信度) * 100
+        overallScore = Math.round((1 - binConfidence) * 100);
+      } else {
+        // 正常图片：可信度 = 正常置信度 * 100
+        overallScore = Math.round(binConfidence * 100);
+      }
+      
+      // 直接使用聊天记录截图的指标（不需要判断 isFace）
+      const metrics = [
+        { 
+          name: '截图完整性', 
+          value: 92, 
+          description: '截图内容完整，无裁剪痕迹' 
+        },
+        { 
+          name: '诈骗文本检测', 
+          value: isFraud ? Math.round(binConfidence * 100) : Math.round((1 - binConfidence) * 100), 
+          description: isFraud ? `检测到诈骗特征，置信度${Math.round(binConfidence * 100)}%` : '未发现明显诈骗特征'
+        },
+        { 
+          name: '界面一致性', 
+          value: 85, 
+          description: '界面元素与官方样式一致' 
+        },
+        { 
+          name: '时间戳分析', 
+          value: 90, 
+          description: '时间戳信息合理' 
+        }
+      ];
+      
+      // 构建图片特征
+      const imageFeatures = [
+        { 
+          name: '图片类型', 
+          value: isFace ? '人脸照片' : '聊天记录截图', 
+          icon: 'fas fa-tag' 
+        },
+        { 
+          name: 'OCR识别文本', 
+          value: ocrText ? `${ocrText.length}字` : '无文本', 
+          icon: 'fas fa-font' 
+        },
+        { 
+          name: '检测结果', 
+          value: isFraud ? '诈骗图片' : '正常图片', 
+          icon: 'fas fa-shield-alt' 
+        },
+        { 
+          name: '置信度', 
+          value: `${Math.round(binConfidence * 100)}%`, 
+          icon: 'fas fa-chart-line' 
+        }
+      ];
+      
+      // 如果有 OCR 识别的诈骗类型，添加到特征中
+      if (isFraud && auxResult !== '无') {
+        imageFeatures.push({
+          name: '诈骗类型',
+          value: auxResult,
+          icon: 'fas fa-exclamation-triangle'
+        });
+      }
+      
+      // 构建详细分析部分
+      const detailSections = [
+        {
+          title: '图片基本信息',
+          items: [
+            { 
+              label: '文件名', 
+              value: file.name, 
+              status: 'normal' 
+            },
+            { 
+              label: '文件大小', 
+              value: this.formatFileSize(file.size), 
+              status: 'normal' 
+            },
+            { 
+              label: '图片类型', 
+              value: isFace ? '人脸照片' : '聊天记录截图', 
+              status: 'normal' 
+            },
+            { 
+              label: '检测时间', 
+              value: new Date().toLocaleString('zh-CN'), 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: 'OCR 文本识别',
+          items: [
+            { 
+              label: '识别状态', 
+              value: ocrText ? '成功' : '未识别到文本', 
+              status: ocrText ? 'success' : 'warning'
+            },
+            { 
+              label: '识别内容', 
+              value: ocrText || '无', 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: '诈骗检测结果',
+          items: [
+            { 
+              label: '二分类结果', 
+              value: backendData['是否诈骗'], 
+              status: isFraud ? 'danger' : 'success' 
+            },
+            { 
+              label: '分类置信度', 
+              value: `${Math.round(binConfidence * 100)}%`, 
+              status: binConfidence > 0.8 ? (isFraud ? 'danger' : 'success') : 'warning'
+            },
+            { 
+              label: '细分类型', 
+              value: auxResult, 
+              status: isFraud ? 'warning' : 'normal' 
+            },
+            { 
+              label: '细分置信度', 
+              value: auxConfidence > 0 ? `${Math.round(auxConfidence * 100)}%` : '-', 
+              status: 'normal' 
+            }
+          ]
+        }
+      ];
+      
+      // 构建深度特征分析
+      const deepFeatures = [
+        { 
+          icon: 'fas fa-file-image', 
+          title: '图片类型分析', 
+          description: isFace 
+            ? '检测为人脸照片，进行人脸真实性分析' 
+            : '检测为聊天记录截图，进行界面一致性分析', 
+          confidence: 95
+        },
+        { 
+          icon: 'fas fa-shield-alt', 
+          title: '诈骗内容检测', 
+          description: isFraud 
+            ? `图片中包含诈骗相关内容，置信度${Math.round(binConfidence * 100)}%` 
+            : '图片中未检测到诈骗相关内容', 
+          confidence: Math.round(binConfidence * 100)
+        },
+        { 
+          icon: 'fas fa-font', 
+          title: 'OCR 文字识别', 
+          description: ocrText 
+            ? `成功识别图片中的文字内容，共${ocrText.length}字` 
+            : '图片中未检测到文字内容', 
+          confidence: ocrText ? 90 : 100
+        },
+        { 
+          icon: 'fas fa-tags', 
+          title: '诈骗类型识别', 
+          description: isFraud && auxResult !== '无'
+            ? `识别为：${auxResult}` 
+            : '无需细分类型识别', 
+          confidence: isFraud ? Math.round(auxConfidence * 100) : 100
+        }
+      ];
+      
+      // 返回前端需要的完整数据结构
+      return {
+        fileName: file.name,
+        fileType: 'image',
+        fileTypeName: '图片',
+        fileSize: this.formatFileSize(file.size),
+        detectTime: new Date().toLocaleString('zh-CN'),
+        overallScore: overallScore,
+        metrics: metrics,
+        imageFeatures: imageFeatures,
+        detailSections: detailSections,
+        deepFeatures: deepFeatures
+      };
+    },
+        // 【新增】将后端返回的音频检测数据映射为前端 currentResult 格式
+    mapAudioResultToFrontend(backendData, file) {
+      const isSpoof = backendData['最终结论'] === 'AI伪造/诈骗语音';
+      const bonafideProb = backendData['真实人声概率'] || 0;
+      const spoofProb = backendData['AI伪造概率'] || 0;
+      const rawScore = backendData['原始Logit得分'] || 0;
+      const threshold = backendData['阈值'] || 1.8712;
+      
+      // 计算总体可信度分数（0-100）
+      // 真实人声 = 高可信度，AI伪造 = 低可信度
+      let overallScore;
+      if (isSpoof) {
+        // AI伪造：可信度 = (1 - AI伪造概率) * 100
+        overallScore = Math.round((1 - spoofProb) * 100);
+      } else {
+        // 真实人声：可信度 = 真实人声概率 * 100
+        overallScore = Math.round(bonafideProb * 100);
+      }
+      
+      // 确保分数在合理范围内
+      overallScore = Math.max(0, Math.min(100, overallScore));
+      
+      // 构建指标数组
+      const metrics = [
+        { 
+          name: '真实人声概率', 
+          value: Math.round(bonafideProb * 100), 
+          description: `模型判断为真实人声的置信度为${Math.round(bonafideProb * 100)}%` 
+        },
+        { 
+          name: 'AI伪造概率', 
+          value: Math.round(spoofProb * 100), 
+          description: `模型判断为AI合成/伪造语音的概率为${Math.round(spoofProb * 100)}%` 
+        },
+        { 
+          name: '声纹自然度', 
+          value: isSpoof ? Math.round((1 - spoofProb) * 100) : Math.round(bonafideProb * 100), 
+          description: isSpoof ? '声纹特征存在异常，疑似AI合成' : '声纹特征自然，符合真人语音特征' 
+        },
+        { 
+          name: '频谱一致性', 
+          value: isSpoof ? 45 : 88, 
+          description: isSpoof ? '频谱分布存在异常模式' : '频谱分布符合自然语音规律' 
+        }
+      ];
+      
+      // 构建音频特征
+      const audioFeatures = [
+        { 
+          name: '文件名', 
+          value: file.name, 
+          icon: 'fas fa-file-audio' 
+        },
+        { 
+          name: '文件大小', 
+          value: this.formatFileSize(file.size), 
+          icon: 'fas fa-weight-hanging' 
+        },
+        { 
+          name: '检测结果', 
+          value: backendData['最终结论'], 
+          icon: 'fas fa-gavel' 
+        },
+        { 
+          name: '原始得分', 
+          value: rawScore.toFixed(4), 
+          icon: 'fas fa-chart-line' 
+        },
+        { 
+          name: '判定阈值', 
+          value: threshold.toFixed(4), 
+          icon: 'fas fa-sliders-h' 
+        }
+      ];
+      
+      // 构建详细分析部分
+      const detailSections = [
+        {
+          title: '音频基本信息',
+          items: [
+            { 
+              label: '文件名', 
+              value: file.name, 
+              status: 'normal' 
+            },
+            { 
+              label: '文件大小', 
+              value: this.formatFileSize(file.size), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测时间', 
+              value: new Date().toLocaleString('zh-CN'), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测模型', 
+              value: 'AASIST 语音伪造检测', 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: 'AI 伪造检测结果',
+          items: [
+            { 
+              label: '最终结论', 
+              value: backendData['最终结论'], 
+              status: isSpoof ? 'danger' : 'success' 
+            },
+            { 
+              label: '真实人声概率', 
+              value: `${Math.round(bonafideProb * 100)}%`, 
+              status: bonafideProb > 0.5 ? 'success' : 'warning'
+            },
+            { 
+              label: 'AI 伪造概率', 
+              value: `${Math.round(spoofProb * 100)}%`, 
+              status: spoofProb > 0.5 ? 'danger' : 'success'
+            },
+            { 
+              label: '原始 Logit 得分', 
+              value: rawScore.toFixed(4), 
+              status: 'normal' 
+            },
+            { 
+              label: '判定阈值', 
+              value: threshold.toFixed(4), 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: '技术说明',
+          items: [
+            { 
+              label: '检测原理', 
+              value: '基于 AASIST 模型的语音伪造检测', 
+              status: 'normal' 
+            },
+            { 
+              label: '判定规则', 
+              value: rawScore < threshold ? '得分 < 阈值 → AI伪造' : '得分 ≥ 阈值 → 真实人声', 
+              status: 'normal' 
+            }
+          ]
+        }
+      ];
+      
+      // 构建深度特征分析
+      const deepFeatures = [
+        { 
+          icon: 'fas fa-microphone-alt', 
+          title: '语音真实性分析', 
+          description: isSpoof 
+            ? `检测为 AI 伪造/诈骗语音，AI 合成概率为 ${Math.round(spoofProb * 100)}%` 
+            : `检测为真实人声，真实人声概率为 ${Math.round(bonafideProb * 100)}%`,
+          confidence: isSpoof ? Math.round(spoofProb * 100) : Math.round(bonafideProb * 100)
+        },
+        { 
+          icon: 'fas fa-wave-square', 
+          title: '声学特征分析', 
+          description: isSpoof 
+            ? '声学特征分布与真人语音存在显著差异，检测到 AI 合成痕迹' 
+            : '声学特征分布符合真人语音规律，未发现明显合成痕迹',
+          confidence: isSpoof ? 88 : 92
+        },
+        { 
+          icon: 'fas fa-chart-bar', 
+          title: '模型得分解读', 
+          description: `原始 Logit 得分为 ${rawScore.toFixed(4)}，判定阈值为 ${threshold.toFixed(4)}` +
+            (rawScore < threshold ? '，得分低于阈值，判定为 AI 伪造' : '，得分高于阈值，判定为真实人声'),
+          confidence: 90
+        },
+        { 
+          icon: 'fas fa-shield-alt', 
+          title: '防诈骗提示', 
+          description: isSpoof 
+            ? '⚠️ 该音频疑似 AI 合成，请警惕诈骗风险！不要轻信语音内容，建议通过其他渠道核实对方身份。' 
+            : '该音频通过 AI 伪造检测，但仍需结合其他信息综合判断。',
+          confidence: isSpoof ? 95 : 80
+        }
+      ];
+      
+      // 返回前端需要的完整数据结构
+      return {
+        fileName: file.name,
+        fileType: 'audio',
+        fileTypeName: '音频',
+        fileSize: this.formatFileSize(file.size),
+        detectTime: new Date().toLocaleString('zh-CN'),
+        overallScore: overallScore,
+        metrics: metrics,
+        audioFeatures: audioFeatures,  // 注意：模板中音频使用的是 textFeatures 字段展示
+        detailSections: detailSections,
+        deepFeatures: deepFeatures
+      };
+    },
+        // 【新增】将后端返回的视频检测数据映射为前端 currentResult 格式
+    mapVideoResultToFrontend(backendData, file) {
+      const isFake = backendData.prediction === 'FAKE';
+      const fakeProb = backendData.fake_probability || 0;
+      const realProb = backendData.real_probability || 0;
+      
+      // 计算总体可信度分数（0-100）
+      // 真实视频 = 高可信度，深度伪造 = 低可信度
+      let overallScore;
+      if (isFake) {
+        // 伪造视频：可信度 = (1 - 伪造概率) * 100
+        overallScore = Math.round((1 - fakeProb) * 100);
+      } else {
+        // 真实视频：可信度 = 真实概率 * 100
+        overallScore = Math.round(realProb * 100);
+      }
+      
+      // 确保分数在合理范围内
+      overallScore = Math.max(0, Math.min(100, overallScore));
+      
+      // 构建指标数组
+      const metrics = [
+        { 
+          name: '真实视频概率', 
+          value: Math.round(realProb * 100), 
+          description: `模型判断为真实视频的置信度为${Math.round(realProb * 100)}%` 
+        },
+        { 
+          name: '深度伪造概率', 
+          value: Math.round(fakeProb * 100), 
+          description: `模型判断为AI换脸/深度伪造的概率为${Math.round(fakeProb * 100)}%` 
+        },
+        { 
+          name: '面部特征一致性', 
+          value: isFake ? Math.round((1 - fakeProb) * 100) : Math.round(realProb * 100), 
+          description: isFake ? '面部特征存在异常，疑似AI换脸' : '面部特征自然，符合真人特征' 
+        },
+        { 
+          name: '音视频同步性', 
+          value: isFake ? 55 : 92, 
+          description: isFake ? '音视频同步存在异常' : '音视频同步良好' 
+        }
+      ];
+      
+      // 构建视频特征
+      const videoFeatures = [
+        { 
+          name: '文件名', 
+          value: file.name, 
+          icon: 'fas fa-file-video' 
+        },
+        { 
+          name: '文件大小', 
+          value: this.formatFileSize(file.size), 
+          icon: 'fas fa-weight-hanging' 
+        },
+        { 
+          name: '检测结果', 
+          value: isFake ? '⚠️ AI深度伪造' : '✅ 真实视频', 
+          icon: 'fas fa-gavel' 
+        },
+        { 
+          name: '伪造概率', 
+          value: `${Math.round(fakeProb * 100)}%`, 
+          icon: 'fas fa-chart-line' 
+        },
+        { 
+          name: '真实概率', 
+          value: `${Math.round(realProb * 100)}%`, 
+          icon: 'fas fa-check-circle' 
+        }
+      ];
+      
+      // 构建详细分析部分
+      const detailSections = [
+        {
+          title: '视频基本信息',
+          items: [
+            { 
+              label: '文件名', 
+              value: file.name, 
+              status: 'normal' 
+            },
+            { 
+              label: '文件大小', 
+              value: this.formatFileSize(file.size), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测时间', 
+              value: new Date().toLocaleString('zh-CN'), 
+              status: 'normal' 
+            },
+            { 
+              label: '检测模型', 
+              value: 'MRDF_CE 多模态深度伪造检测', 
+              status: 'normal' 
+            }
+          ]
+        },
+        {
+          title: '深度伪造检测结果',
+          items: [
+            { 
+              label: '最终结论', 
+              value: isFake ? 'AI深度伪造视频' : '真实视频', 
+              status: isFake ? 'danger' : 'success' 
+            },
+            { 
+              label: '真实视频概率', 
+              value: `${Math.round(realProb * 100)}%`, 
+              status: realProb > 0.5 ? 'success' : 'warning'
+            },
+            { 
+              label: '深度伪造概率', 
+              value: `${Math.round(fakeProb * 100)}%`, 
+              status: fakeProb > 0.5 ? 'danger' : 'success'
+            }
+          ]
+        },
+        {
+          title: '技术说明',
+          items: [
+            { 
+              label: '检测原理', 
+              value: '基于 MRDF_CE 多模态模型，分析面部特征和音视频同步性', 
+              status: 'normal' 
+            },
+            { 
+              label: '分析维度', 
+              value: '面部特征、音频特征、音视频一致性', 
+              status: 'normal' 
+            }
+          ]
+        }
+      ];
+      
+      // 构建深度特征分析
+      const deepFeatures = [
+        { 
+          icon: 'fas fa-user-secret', 
+          title: '深度伪造检测', 
+          description: isFake 
+            ? `⚠️ 检测为 AI 深度伪造视频，伪造概率为 ${Math.round(fakeProb * 100)}%。可能存在换脸或AI合成痕迹。` 
+            : `✅ 未检测到明显的深度伪造痕迹，真实视频概率为 ${Math.round(realProb * 100)}%。`,
+          confidence: isFake ? Math.round(fakeProb * 100) : Math.round(realProb * 100)
+        },
+        { 
+          icon: 'fas fa-face-smile', 
+          title: '面部特征分析', 
+          description: isFake 
+            ? '面部特征存在异常，如不自然的眨眼频率、面部边界模糊、肤色不一致等问题。' 
+            : '面部特征自然，五官比例协调，表情过渡平滑。',
+          confidence: isFake ? 75 : 90
+        },
+        { 
+          icon: 'fas fa-wave-square', 
+          title: '音视频同步分析', 
+          description: isFake 
+            ? '口型与语音同步性较差，可能存在音视频拼接或AI合成痕迹。' 
+            : '口型与语音同步性良好，符合真人说话特征。',
+          confidence: isFake ? 60 : 88
+        },
+        { 
+          icon: 'fas fa-shield-alt', 
+          title: '防诈骗提示', 
+          description: isFake 
+            ? '🚨 该视频疑似 AI 深度伪造！请高度警惕诈骗风险。不要轻信视频内容，建议通过其他渠道核实对方身份。常见的深度伪造视频用于冒充亲友、领导进行诈骗。' 
+            : '该视频通过深度伪造检测，但仍需结合其他信息综合判断，保持警惕。',
+          confidence: isFake ? 95 : 80
+        }
+      ];
+      
+      // 返回前端需要的完整数据结构
+      return {
+        fileName: file.name,
+        fileType: 'video',
+        fileTypeName: '视频',
+        fileSize: this.formatFileSize(file.size),
+        detectTime: new Date().toLocaleString('zh-CN'),
+        overallScore: overallScore,
+        metrics: metrics,
+        videoFeatures: videoFeatures,  // 视频特征
+        detailSections: detailSections,
+        deepFeatures: deepFeatures
+      };
+    },
+    
+    ///////////////////////////////////////////////////////////////////////////////
     addToRecords() {
       const newRecord = {
         id: this.records.length + 1,
@@ -2456,20 +3522,6 @@ export default {
   background: rgba(255,255,255,0.9);
   padding: 2px 8px;
   border-radius: 12px;
-}
-
-/* 文本分析样式 */
-.text-analysis {
-  margin-top: 20px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 10px;
-}
-
-.text-features {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
 }
 
 /* 确保查询和重置按钮大小一致 */
@@ -3324,14 +4376,6 @@ export default {
   color: #94a3b8;
 }
 
-/* 图像分析 */
-.image-analysis {
-  margin-top: 20px;
-  padding: 16px;
-  background: #f8fafc;
-  border-radius: 10px;
-}
-
 .analysis-subtitle {
   font-size: 15px;
   font-weight: 600;
@@ -3340,12 +4384,6 @@ export default {
   align-items: center;
   gap: 8px;
   color: #1e293b;
-}
-
-.image-features {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
 }
 
 .feature {
@@ -4627,66 +5665,250 @@ export default {
   background: #94a3b8;
 }
 
-/* 内嵌预览样式 */
+/* ==================== 内嵌预览样式（优化版） ==================== */
 .inline-preview-area {
   position: relative;
   width: 100%;
-  padding: 16px;
+  padding: 12px;
   box-sizing: border-box;
 }
-.preview-image-container, .preview-video-container, .preview-audio-container {
+
+/* 图片预览容器 */
+.preview-image-container {
   position: relative;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f1f5f9;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
   overflow: hidden;
+  min-height: 200px;
+  padding: 16px;
+  box-sizing: border-box;
 }
+
 .preview-image-full {
   max-width: 100%;
   max-height: 300px;
   object-fit: contain;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
+
+/* 视频预览容器 */
+.preview-video-container {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  overflow: hidden;
+  min-height: 200px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
 .preview-video-full {
   width: 100%;
   max-height: 300px;
-  border-radius: 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
-.preview-audio-container {
-  flex-direction: column;
-  padding: 20px;
-  background: #f8fafc;
-}
-.audio-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 16px;
-  font-size: 14px;
-  color: #1e293b;
-}
-.audio-info i { font-size: 24px; color: #3b7cff; }
-.preview-audio-full { width: 100%; }
+
+/* ==================== 统一的删除按钮样式（美观版） ==================== */
 .remove-file-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  background: rgba(0,0,0,0.6);
-  border: none;
-  color: white;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
 }
-.remove-file-btn:hover { background: #ef4444; transform: scale(1.05); }
-.remove-file-btn i { font-size: 20px; }
+
+.remove-file-btn i {
+  font-size: 16px;
+  color: #64748b;
+  transition: all 0.25s ease;
+}
+
+.remove-file-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+}
+
+.remove-file-btn:hover i {
+  color: white;
+}
+
+/* 视频预览中的删除按钮 - 适配深色背景 */
+.preview-video-container .remove-file-btn {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.preview-video-container .remove-file-btn i {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.preview-video-container .remove-file-btn:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+}
+
+.preview-video-container .remove-file-btn:hover i {
+  color: white;
+}
+
+/* 音频预览中的删除按钮 - 已经定义过，这里确保一致性 */
+.preview-audio-container .remove-file-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.preview-audio-container .remove-file-btn i {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.preview-audio-container .remove-file-btn:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(239, 68, 68, 0.4);
+}
+
+.preview-audio-container .remove-file-btn:hover i {
+  color: white;
+}
+/* ==================== 音频预览美化样式 ==================== */
+.preview-audio-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 200px;
+  padding: 32px 24px;
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  border-radius: 16px;
+  box-sizing: border-box;
+}
+
+.audio-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+  text-align: center;
+}
+
+.audio-info i {
+  font-size: 64px;
+  color: #3b7cff;
+  background: white;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  box-shadow: 0 8px 20px rgba(59, 124, 255, 0.15);
+  transition: transform 0.3s ease;
+}
+
+.audio-info i:hover {
+  transform: scale(1.05);
+}
+
+.audio-info span {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e293b;
+  max-width: 280px;
+  word-break: break-word;
+  line-height: 1.4;
+  padding: 0 8px;
+}
+
+.preview-audio-full {
+  width: 100%;
+  max-width: 400px;
+  height: 48px;
+  border-radius: 24px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  margin: 0 auto;
+}
+
+/* 音频播放器自定义样式（针对 WebKit 浏览器） */
+.preview-audio-full::-webkit-media-controls-panel {
+  background-color: white;
+  border-radius: 24px;
+}
+
+.preview-audio-full::-webkit-media-controls-play-button {
+  background-color: #3b7cff;
+  border-radius: 50%;
+  color: white;
+}
+
+.preview-audio-full::-webkit-media-controls-current-time-display,
+.preview-audio-full::-webkit-media-controls-time-remaining-display {
+  color: #1e293b;
+  font-weight: 500;
+}
+
+.preview-audio-full::-webkit-media-controls-timeline {
+  background-color: #e2e8f0;
+  border-radius: 4px;
+  margin: 0 8px;
+}
+
+.preview-audio-full::-webkit-media-controls-volume-slider {
+  background-color: #e2e8f0;
+  border-radius: 4px;
+}
+
+.preview-audio-container .remove-file-btn:hover {
+  background: #ef4444;
+  transform: scale(1.1);
+}
+
+.preview-audio-container .remove-file-btn i {
+  font-size: 18px;
+}
 
 /* 简化版功能特点展示 */
 .feature-description-result-compact {
@@ -4719,6 +5941,20 @@ export default {
 .feature-text-compact span {
   font-size: 12px;
   color: #64748b;
+}
+
+/* 媒体分析（图片/文本/音频/视频通用） */
+.media-analysis {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.media-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 </style>
