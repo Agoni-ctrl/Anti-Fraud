@@ -461,9 +461,15 @@
         <div class="filter-section">
           <div class="filter-header">
             <h3 class="filter-title"><i class="fas fa-filter"></i> 筛选条件</h3>
-            <button class="export-records-btn" @click="exportRecords">
-              <i class="fas fa-download"></i> 导出记录
-            </button>
+            <div class="export-dropdown">
+              <button class="export-records-btn" @click.stop="showExportMenu = !showExportMenu">
+                <i class="fas fa-download"></i> 导出记录 <i class="fas fa-chevron-down"></i>
+              </button>
+              <div class="export-menu" v-if="showExportMenu" @click.stop>
+                <button @click="exportRecords('csv')">导出为 CSV</button>
+                <button @click="exportRecords('json')">导出为 JSON</button>
+              </div>
+            </div>
           </div>
           
           <div class="filter-grid">
@@ -1132,6 +1138,8 @@ export default {
         search: ''
       },
       
+      showExportMenu: false,  // 新增：控制导出菜单显示
+
       records: [
         { id: 1, name: '陌生来电录音.mp3', type: '音频', subtype: '', time: '2026-03-02 14:23', score: 23, resultClass: 'suspicious', resultText: '疑似伪造' },
         { id: 2, name: '身份证照片.jpg', type: '图片', subtype: '人脸', time: '2026-03-02 13:47', score: 97, resultClass: 'trust', resultText: '可信' },
@@ -1330,6 +1338,15 @@ export default {
   mounted() {
     window.addEventListener('resize', this.handleResize);
     
+    // 注意：这里不能用箭头函数，因为需要移除监听
+    this.handleDocumentClick = (event) => {
+      const dropdown = this.$el.querySelector('.export-dropdown');
+      if (dropdown && !dropdown.contains(event.target)) {
+        this.showExportMenu = false;
+      }
+    };
+    document.addEventListener('click', this.handleDocumentClick);
+    
     if (this.currentNav === 'statistics') {
       setTimeout(() => {
         this.initCharts();
@@ -1339,6 +1356,9 @@ export default {
   
   beforeDestroy() {
     window.removeEventListener('resize', this.handleResize);
+    if (this.handleDocumentClick) {
+      document.removeEventListener('click', this.handleDocumentClick);
+    }
     this.disposeCharts();
     if (this.detectTimer) {
       clearInterval(this.detectTimer);
@@ -3306,9 +3326,108 @@ export default {
       this.exportReport();
     },
     
-    exportRecords() {
-      alert('批量导出记录功能开发中');
-    },
+    // ==================== 批量导出记录功能（支持 CSV 和 JSON） ====================
+  async exportRecords(format = 'csv') {
+    const recordsToExport = this.filteredRecords;
+    
+    if (recordsToExport.length === 0) {
+      alert('暂无记录可导出');
+      return;
+    }
+    
+    try {
+      // 关闭菜单
+      this.showExportMenu = false;
+      
+      if (format === 'csv') {
+        const exportData = this.generateExportData(recordsToExport);
+        this.downloadCSV(exportData, `检测记录_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`);
+      } else if (format === 'json') {
+        this.downloadJSON(recordsToExport);
+      }
+      alert(`成功导出 ${recordsToExport.length} 条记录`);
+    } catch (error) {
+      console.error('导出失败:', error);
+      alert('导出失败，请重试');
+    }
+  },
+
+  // 生成导出数据（CSV 格式）
+  generateExportData(records) {
+    const headers = ['序号', '文件名', '文件类型', '子类', '检测时间', '可信度分数', '检测结果'];
+    const rows = records.map((record, index) => [
+      index + 1,
+      record.name,
+      record.type,
+      record.subtype || '-',
+      record.time,
+      `${record.score}%`,
+      this.getResultText(record.resultClass)
+    ]);
+    return { headers, rows };
+  },
+
+  // 获取结果文本
+  getResultText(resultClass) {
+    const map = { 'trust': '可信', 'suspicious': '疑似伪造', 'review': '待复核' };
+    return map[resultClass] || resultClass;
+  },
+
+  // 下载 CSV 文件
+  downloadCSV(data, filename) {
+    const { headers, rows } = data;
+    
+    const escapeCSV = (cell) => {
+      if (cell === null || cell === undefined) return '';
+      const str = String(cell);
+      if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+        return `"${str.replace(/"/g, '""')}"`;
+      }
+      return str;
+    };
+    
+    const csvContent = [
+      headers.map(escapeCSV).join(','),
+      ...rows.map(row => row.map(escapeCSV).join(','))
+    ].join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
+
+  // 下载 JSON 文件
+  downloadJSON(records) {
+    const exportData = records.map((record, index) => ({
+      序号: index + 1,
+      文件名: record.name,
+      文件类型: record.type,
+      子类: record.subtype || '',
+      检测时间: record.time,
+      可信度分数: record.score,
+      可信度百分比: `${record.score}%`,
+      检测结果: this.getResultText(record.resultClass),
+      结果标识: record.resultClass,
+      导出时间: new Date().toLocaleString('zh-CN')
+    }));
+    
+    const jsonStr = JSON.stringify(exportData, null, 2);
+    const blob = new Blob(['\uFEFF' + jsonStr], { type: 'application/json;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.setAttribute('download', `检测记录_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  },
     
     goToPage() {
       if (this.jumpPage >= 1 && this.jumpPage <= this.totalPages) {
@@ -5955,6 +6074,48 @@ export default {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
+}
+
+/* 导出下拉菜单样式 */
+.export-dropdown {
+  position: relative;
+}
+
+.export-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  border: 1px solid #edf2f7;
+  z-index: 100;
+  min-width: 160px;
+  overflow: hidden;
+}
+
+.export-menu button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  background: white;
+  border: none;
+  font-size: 14px;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+.export-menu button:hover {
+  background: #f0f4fe;
+  color: #3b7cff;
+}
+
+.export-menu button:first-child {
+  border-bottom: 1px solid #edf2f7;
 }
 
 </style>
